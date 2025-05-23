@@ -52,6 +52,7 @@ Options:
     -u                  update the package database
     -t                  test only, execute opkg commands with --noaction
     -v                  be verbose
+    -x                  enable shell debug tracing (set -x)
 
 Configuration:
     IPK_CACHE_ALL_VERSIONS in script controls whether to cache all .ipk versions or just the latest.
@@ -96,7 +97,7 @@ the call to opkg to write the list of installed packages, though.
 trap cleanup SIGHUP SIGINT SIGTERM EXIT
 
 # parse command line options
-while getopts "htuv" OPTS; do
+while getopts "htuvx" OPTS; do
     case $OPTS in
         t )
             OPKGOPT="$OPKGOPT --noaction";;
@@ -104,6 +105,8 @@ while getopts "htuv" OPTS; do
             UPDATE=true;;
         v )
             VERBOSE=true;;
+        x )
+            DEBUG_TRACE=true; VERBOSE=true;;
         [h\?*] )
             echo_usage
             exit 0;;
