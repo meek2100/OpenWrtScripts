@@ -30,6 +30,8 @@ PREQLIST=$(mktemp)                                  # List of prerequisite packa
 UPDATE=false                                        # Update the package database
 OPKGOPT=""                                          # Options for opkg calls
 VERBOSE=false                                       # Be verbose
+DEBUG_TRACE=false                                   # Set to true to enable shell debug tracing (set -x)
+
 
 cleanup () {
     rm -f $INSTLIST $PREQLIST
@@ -109,7 +111,7 @@ while getopts "htuv" OPTS; do
 done
 shift $(($OPTIND - 1))
 
-[ "$VERBOSE" = true ] && set -x
+[ "$DEBUG_TRACE" = true ] && set -x
 
 # Set the command
 COMMAND=$1
