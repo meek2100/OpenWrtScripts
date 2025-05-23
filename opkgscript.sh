@@ -99,17 +99,11 @@ trap cleanup SIGHUP SIGINT SIGTERM EXIT
 # parse command line options
 while getopts "htuvx" OPTS; do
     case $OPTS in
-		   
         t ) OPKGOPT="$OPKGOPT --noaction";;
-		   
         u ) UPDATE=true;;
-		   
         v ) VERBOSE=true;;
-		   
         x ) DEBUG_TRACE=true; VERBOSE=true;;
-				
         [h\?*] ) echo_usage; exit 0;;
-					
     esac
 done
 shift $(($OPTIND - 1))
@@ -127,7 +121,6 @@ fi
 #
 # Help
 #
-
 if [ "x$COMMAND" == "x" ]; then
     echo "No command specified."
     echo ""
@@ -142,11 +135,8 @@ fi
 #
 # Write
 #
-
 if [ $COMMAND = "write" ]; then
-					 
     $VERBOSE && echo "Saving package list to $PCKGLIST"
-	  
     # NOTE: option --noaction not valid for list-installed
     opkg list-installed > "$PCKGLIST"
     exit 0
@@ -155,7 +145,6 @@ fi
 #
 # Cache IPKs
 #
-
 if [ $COMMAND = "cache-ipks" ]; then
     if [ ! -f "$IPK_CACHE_LIST" ]; then
         echo "Error: IPK cache list '$IPK_CACHE_LIST' not found."
@@ -164,19 +153,15 @@ if [ $COMMAND = "cache-ipks" ]; then
     fi
 
     if [ ! -d "$IPK_CACHE_DIR" ]; then
-						 
         $VERBOSE && echo "Creating IPK cache directory: $IPK_CACHE_DIR"
-		  
         mkdir -p "$IPK_CACHE_DIR" || {
             echo "Error: Could not create IPK cache directory '$IPK_CACHE_DIR'."
             exit 1
         }
     fi
 
-					 
     $VERBOSE && echo "Caching IPK files from list: $IPK_CACHE_LIST to $IPK_CACHE_DIR"
     $VERBOSE && echo "Checking freshness of opkg cache..."
-	  
 
     # Only update if lists are older than 5 minutes
     CACHE_AGE_LIMIT=300  # seconds
@@ -207,7 +192,6 @@ if [ $COMMAND = "cache-ipks" ]; then
 		TOTAL=$((TOTAL + 1))
 
 		IPK_LATEST_FILENAME=$(opkg info "$PACKAGE" | grep "^Filename:" | awk '{print $2}')
-																			  
 		[ -z "$IPK_LATEST_FILENAME" ] && {
 			echo "Warning: Could not find filename for package '$PACKAGE'. Skipping."
 			continue
@@ -215,9 +199,6 @@ if [ $COMMAND = "cache-ipks" ]; then
 
 		BASE_PACKAGE_NAME=$(opkg info "$PACKAGE" | grep "^Package:" | awk '{print $2}')
 		IPK_LATEST_PATH="$IPK_CACHE_DIR/$IPK_LATEST_FILENAME"
-																					 
-					
-		 
 
 		if ! $IPK_CACHE_ALL_VERSIONS && [ -n "$BASE_PACKAGE_NAME" ]; then
 			CACHED_FILES=$(find "$IPK_CACHE_DIR" -maxdepth 1 -type f -name "${BASE_PACKAGE_NAME}_*.ipk")
@@ -244,25 +225,8 @@ if [ $COMMAND = "cache-ipks" ]; then
 			else
 				echo "Warning: Download failed or file missing for '$PACKAGE'"
 			fi
-				
 		fi
 	done < "$IPK_CACHE_LIST"
-
-										  
-																
-													  
-			
-																				
-											 
-																	
-															  
-														  
-														  
-				
-																			  
-			  
-		  
-		
 
     echo ""
     echo "IPK Cache Summary:"
@@ -278,7 +242,6 @@ fi
 #
 # Update 
 #
-
 if $UPDATE; then
     opkg $OPKGOPT update
 fi
@@ -286,12 +249,9 @@ fi
 #
 # Check
 #
-
 if [ $COMMAND == "install" ] || [ $COMMAND == "script" ]; then
     # detect uninstalled packages
     $VERBOSE && [ $COMMAND != "script" ] && echo "Checking packages... "
-									
-	  
     cat "$PCKGLIST" | while read PACKAGE SEP VERSION; do
         # opkg status is much faster than opkg info
         # it only returns status of installed packages
@@ -313,15 +273,12 @@ fi
 #
 # Install or script
 #
-
 if [ $COMMAND == "install" ]; then
     # install packages
     cat "$INSTLIST" | while read PACKAGE; do
         if grep -q "^$PACKAGE\$" "$PREQLIST"; then
             # prerequisite package, will be installed automatically
-							 
             $VERBOSE && echo "$PACKAGE installed automatically"
-			  
         else
             # install package
             opkg $OPKGOPT install $PACKAGE
