@@ -198,9 +198,15 @@ if [ $COMMAND = "cache-ipks" ] ; then
         echo "Finished opkg update"
     fi
 
+    TOTAL_LISTED=0
+    TOTAL_DOWNLOADED=0
+    TOTAL_UP_TO_DATE=0
+    TOTAL_REMOVED=0
+
     cat "$IPK_CACHE_LIST" | while read PACKAGE; do
         PACKAGE=$(echo "$PACKAGE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
         [ -z "$PACKAGE" ] && continue
+        TOTAL_LISTED=$((TOTAL_LISTED + 1))
 
         IPK_LATEST_FILENAME=$(opkg info "$PACKAGE" | grep "^Filename:" | awk '{print $2}')
         [ -z "$IPK_LATEST_FILENAME" ] && {
@@ -216,25 +222,34 @@ if [ $COMMAND = "cache-ipks" ] ; then
             for CACHED_FILE in $CACHED_FILES; do
                 CACHED_FILENAME=$(basename "$CACHED_FILE")
                 if [ "$CACHED_FILENAME" != "$IPK_LATEST_FILENAME" ]; then
-                    $VERBOSE && echo "Removing old version of $BASE_PACKAGE_NAME: $CACHED_FILE"
-                    rm -f "$CACHED_FILE" || echo "Warning: Failed to remove $CACHED_FILE"
+                    $VERBOSE && echo "Removing older version of $BASE_PACKAGE_NAME: $CACHED_FILE"
+                    rm -f "$CACHED_FILE" && TOTAL_REMOVED=$((TOTAL_REMOVED + 1))
                 fi
             done
         fi
 
         if [ -f "$IPK_LATEST_PATH" ]; then
-            $VERBOSE && echo "Package '$PACKAGE' IPK already exists: $IPK_LATEST_FILENAME (skipping download)"
+            echo "$PACKAGE is up to date ($IPK_LATEST_FILENAME)"
+            TOTAL_UP_TO_DATE=$((TOTAL_UP_TO_DATE + 1))
         else
-            $VERBOSE && echo "Downloading '$PACKAGE' (latest version: $IPK_LATEST_FILENAME)"
+            echo "Downloading latest version of $PACKAGE ($IPK_LATEST_FILENAME)"
             opkg $OPKGOPT download "$PACKAGE"
             if [ $? -eq 0 ] && [ -f "./$IPK_LATEST_FILENAME" ]; then
-                mv "./$IPK_LATEST_FILENAME" "$IPK_LATEST_PATH" || echo "Error: Failed to move downloaded IPK"
-                $VERBOSE && echo "Successfully moved to $IPK_CACHE_DIR"
+                mv "./$IPK_LATEST_FILENAME" "$IPK_LATEST_PATH"
+                TOTAL_DOWNLOADED=$((TOTAL_DOWNLOADED + 1))
+                $VERBOSE && echo "Saved to $IPK_CACHE_DIR"
             else
                 echo "Warning: Download failed or file missing for '$PACKAGE'"
             fi
         fi
     done
+
+    echo ""
+    echo "IPK Cache Summary:"
+    printf "  Packages scanned:         %d\n" "$TOTAL_LISTED"
+    printf "  New downloads:            %d\n" "$TOTAL_DOWNLOADED"
+    printf "  Older versions removed:   %d\n" "$TOTAL_REMOVED"
+    printf "  Already up to date:       %d\n" "$TOTAL_UP_TO_DATE"
     exit 0
 fi
 
