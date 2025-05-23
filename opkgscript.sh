@@ -173,7 +173,21 @@ if [ $COMMAND = "cache-ipks" ] ; then
         echo "Running opkg update..."
     fi
 
-    opkg update
+    # Only update if lists are older than 5 minutes
+    CACHE_AGE_LIMIT=300  # seconds
+    needs_update=false
+    for list in /var/opkg-lists/*; do
+        if [ ! -f "$list" ] || [ "$(($(date +%s) - $(stat -c %Y "$list")))" -gt "$CACHE_AGE_LIMIT" ]; then
+            needs_update=true
+            break
+        fi
+    done
+
+    if $needs_update; then
+        opkg update
+    else
+        echo "Skipping opkg update: cache is fresh"
+    fi
 
     if $VERBOSE; then
         echo "Finished opkg update"
