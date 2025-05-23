@@ -47,7 +47,7 @@ Available commands:
     install             install packages on list not currently installed
     script              output a script to install missing packages
     cache-ipks          download .ipk files for specific packages to a local cache
-    
+
 Options:
     -u                  update the package database
     -t                  test only, execute opkg commands with --noaction
@@ -90,7 +90,7 @@ opkg database must have been updated. You can use the option -u to do this.
 
 You can specify the option -t to test what $SCRIPTNAME would do. All calls
 to opkg will be made with the option --noaction. This does not influence
-the call to opkg to write the list of installed packages, though. 
+the call to opkg to write the list of installed packages, though.
 "
 }
 
@@ -99,17 +99,17 @@ trap cleanup SIGHUP SIGINT SIGTERM EXIT
 # parse command line options
 while getopts "htuvx" OPTS; do
     case $OPTS in
-        t )
-            OPKGOPT="$OPKGOPT --noaction";;
-        u )
-            UPDATE=true;;
-        v )
-            VERBOSE=true;;
-        x )
-            DEBUG_TRACE=true; VERBOSE=true;;
-        [h\?*] )
-            echo_usage
-            exit 0;;
+		   
+        t ) OPKGOPT="$OPKGOPT --noaction";;
+		   
+        u ) UPDATE=true;;
+		   
+        v ) VERBOSE=true;;
+		   
+        x ) DEBUG_TRACE=true; VERBOSE=true;;
+				
+        [h\?*] ) echo_usage; exit 0;;
+					
     esac
 done
 shift $(($OPTIND - 1))
@@ -143,10 +143,10 @@ fi
 # Write
 #
 
-if [ $COMMAND = "write" ] ; then
-    if $VERBOSE; then
-        echo "Saving package list to $PCKGLIST"
-    fi
+if [ $COMMAND = "write" ]; then
+					 
+    $VERBOSE && echo "Saving package list to $PCKGLIST"
+	  
     # NOTE: option --noaction not valid for list-installed
     opkg list-installed > "$PCKGLIST"
     exit 0
@@ -156,7 +156,7 @@ fi
 # Cache IPKs
 #
 
-if [ $COMMAND = "cache-ipks" ] ; then
+if [ $COMMAND = "cache-ipks" ]; then
     if [ ! -f "$IPK_CACHE_LIST" ]; then
         echo "Error: IPK cache list '$IPK_CACHE_LIST' not found."
         echo "Please create this file and list the packages you want to cache (one per line)."
@@ -164,92 +164,114 @@ if [ $COMMAND = "cache-ipks" ] ; then
     fi
 
     if [ ! -d "$IPK_CACHE_DIR" ]; then
-        if $VERBOSE; then
-            echo "Creating IPK cache directory: $IPK_CACHE_DIR"
-        fi
+						 
+        $VERBOSE && echo "Creating IPK cache directory: $IPK_CACHE_DIR"
+		  
         mkdir -p "$IPK_CACHE_DIR" || {
             echo "Error: Could not create IPK cache directory '$IPK_CACHE_DIR'."
             exit 1
         }
     fi
 
-    if $VERBOSE; then
-        echo "Caching IPK files from list: $IPK_CACHE_LIST to $IPK_CACHE_DIR"
-        echo "Running opkg update..."
-    fi
+					 
+    $VERBOSE && echo "Caching IPK files from list: $IPK_CACHE_LIST to $IPK_CACHE_DIR"
+    $VERBOSE && echo "Checking freshness of opkg cache..."
+	  
 
     # Only update if lists are older than 5 minutes
     CACHE_AGE_LIMIT=300  # seconds
     needs_update=false
     for list in /var/opkg-lists/*; do
-        if [ ! -f "$list" ] || [ "$(($(date +%s) - $(stat -c %Y "$list")))" -gt "$CACHE_AGE_LIMIT" ]; then
+        if [ ! -f "$list" ] || [ "$(($(date +%s) - $(date -r "$list" +%s)))" -gt "$CACHE_AGE_LIMIT" ]; then
             needs_update=true
             break
         fi
     done
 
     if $needs_update; then
+        $VERBOSE && echo "Running opkg update..."
         opkg update
+        $VERBOSE && echo "Finished opkg update"
     else
         echo "Skipping opkg update: cache is fresh"
     fi
 
-    if $VERBOSE; then
-        echo "Finished opkg update"
-    fi
+	TOTAL=0
+	DOWNLOADED=0
+	SKIPPED=0
+	REMOVED=0
 
-    TOTAL_LISTED=0
-    TOTAL_DOWNLOADED=0
-    TOTAL_UP_TO_DATE=0
-    TOTAL_REMOVED=0
+	while read PACKAGE; do
+		PACKAGE=$(echo "$PACKAGE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+		[ -z "$PACKAGE" ] && continue
+		TOTAL=$((TOTAL + 1))
 
-    cat "$IPK_CACHE_LIST" | while read PACKAGE; do
-        PACKAGE=$(echo "$PACKAGE" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-        [ -z "$PACKAGE" ] && continue
-        TOTAL_LISTED=$((TOTAL_LISTED + 1))
+		IPK_LATEST_FILENAME=$(opkg info "$PACKAGE" | grep "^Filename:" | awk '{print $2}')
+																			  
+		[ -z "$IPK_LATEST_FILENAME" ] && {
+			echo "Warning: Could not find filename for package '$PACKAGE'. Skipping."
+			continue
+		}
 
-        IPK_LATEST_FILENAME=$(opkg info "$PACKAGE" | grep "^Filename:" | awk '{print $2}')
-        [ -z "$IPK_LATEST_FILENAME" ] && {
-            echo "Warning: Could not find filename for package '$PACKAGE'. Skipping."
-            continue
-        }
+		BASE_PACKAGE_NAME=$(opkg info "$PACKAGE" | grep "^Package:" | awk '{print $2}')
+		IPK_LATEST_PATH="$IPK_CACHE_DIR/$IPK_LATEST_FILENAME"
+																					 
+					
+		 
 
-        BASE_PACKAGE_NAME=$(opkg info "$PACKAGE" | grep "^Package:" | awk '{print $2}')
-        IPK_LATEST_PATH="$IPK_CACHE_DIR/$IPK_LATEST_FILENAME"
+		if ! $IPK_CACHE_ALL_VERSIONS && [ -n "$BASE_PACKAGE_NAME" ]; then
+			CACHED_FILES=$(find "$IPK_CACHE_DIR" -maxdepth 1 -type f -name "${BASE_PACKAGE_NAME}_*.ipk")
+			for CACHED_FILE in $CACHED_FILES; do
+				CACHED_FILENAME=$(basename "$CACHED_FILE")
+				if [ "$CACHED_FILENAME" != "$IPK_LATEST_FILENAME" ]; then
+					$VERBOSE && echo "Removing old version of $BASE_PACKAGE_NAME: $CACHED_FILENAME"
+					rm -f "$CACHED_FILE" || echo "Warning: Failed to remove $CACHED_FILE"
+					REMOVED=$((REMOVED + 1))
+				fi
+			done
+		fi
 
-        if ! $IPK_CACHE_ALL_VERSIONS && [ -n "$BASE_PACKAGE_NAME" ]; then
-            CACHED_FILES=$(find "$IPK_CACHE_DIR" -maxdepth 1 -type f -name "${BASE_PACKAGE_NAME}_*.ipk")
-            for CACHED_FILE in $CACHED_FILES; do
-                CACHED_FILENAME=$(basename "$CACHED_FILE")
-                if [ "$CACHED_FILENAME" != "$IPK_LATEST_FILENAME" ]; then
-                    $VERBOSE && echo "Removing older version of $BASE_PACKAGE_NAME: $CACHED_FILE"
-                    rm -f "$CACHED_FILE" && TOTAL_REMOVED=$((TOTAL_REMOVED + 1))
-                fi
-            done
-        fi
+		if [ -f "$IPK_LATEST_PATH" ]; then
+			echo "$PACKAGE is up to date ($IPK_LATEST_FILENAME)"
+			SKIPPED=$((SKIPPED + 1))
+		else
+			$VERBOSE && echo "Downloading $PACKAGE → $IPK_LATEST_FILENAME"
+			opkg $OPKGOPT download "$PACKAGE"
+			if [ $? -eq 0 ] && [ -f "./$IPK_LATEST_FILENAME" ]; then
+				mv "./$IPK_LATEST_FILENAME" "$IPK_LATEST_PATH" || echo "Error: Failed to move downloaded IPK"
+				$VERBOSE && echo "Moved to $IPK_CACHE_DIR"
+				DOWNLOADED=$((DOWNLOADED + 1))
+			else
+				echo "Warning: Download failed or file missing for '$PACKAGE'"
+			fi
+				
+		fi
+	done < "$IPK_CACHE_LIST"
 
-        if [ -f "$IPK_LATEST_PATH" ]; then
-            echo "$PACKAGE is up to date ($IPK_LATEST_FILENAME)"
-            TOTAL_UP_TO_DATE=$((TOTAL_UP_TO_DATE + 1))
-        else
-            echo "Downloading latest version of $PACKAGE ($IPK_LATEST_FILENAME)"
-            opkg $OPKGOPT download "$PACKAGE"
-            if [ $? -eq 0 ] && [ -f "./$IPK_LATEST_FILENAME" ]; then
-                mv "./$IPK_LATEST_FILENAME" "$IPK_LATEST_PATH"
-                TOTAL_DOWNLOADED=$((TOTAL_DOWNLOADED + 1))
-                $VERBOSE && echo "Saved to $IPK_CACHE_DIR"
-            else
-                echo "Warning: Download failed or file missing for '$PACKAGE'"
-            fi
-        fi
-    done
+										  
+																
+													  
+			
+																				
+											 
+																	
+															  
+														  
+														  
+				
+																			  
+			  
+		  
+		
 
     echo ""
     echo "IPK Cache Summary:"
-    printf "  Packages scanned:         %d\n" "$TOTAL_LISTED"
-    printf "  New downloads:            %d\n" "$TOTAL_DOWNLOADED"
-    printf "  Older versions removed:   %d\n" "$TOTAL_REMOVED"
-    printf "  Already up to date:       %d\n" "$TOTAL_UP_TO_DATE"
+    printf "  %-25s %d\n" "Packages scanned:" $TOTAL
+    printf "  %-25s %d\n" "New downloads:" $DOWNLOADED
+    printf "  %-25s %d\n" "Older versions removed:" $REMOVED
+    printf "  %-25s %d\n" "Already up to date:" $SKIPPED
+    echo ""
+
     exit 0
 fi
 
@@ -267,9 +289,9 @@ fi
 
 if [ $COMMAND == "install" ] || [ $COMMAND == "script" ]; then
     # detect uninstalled packages
-    if $VERBOSE && [ $COMMAND != "script" ]; then
-        echo "Checking packages... "
-    fi
+    $VERBOSE && [ $COMMAND != "script" ] && echo "Checking packages... "
+									
+	  
     cat "$PCKGLIST" | while read PACKAGE SEP VERSION; do
         # opkg status is much faster than opkg info
         # it only returns status of installed packages
@@ -280,10 +302,10 @@ if [ $COMMAND == "install" ] || [ $COMMAND == "script" ]; then
             # collect prerequisites
             opkg info "$PACKAGE" |
             awk "/^Depends: / {
-                                sub(\"Depends: \", \"\");   \
-                                gsub(\", \", \"\\n\");      \
-                                print >> \"$PREQLIST\";      \
-                              }"
+                sub(\"Depends: \", \"\");
+                gsub(\", \", \"\\n\");
+                print >> \"$PREQLIST\";
+            }"
         fi
     done
 fi
@@ -297,9 +319,9 @@ if [ $COMMAND == "install" ]; then
     cat "$INSTLIST" | while read PACKAGE; do
         if grep -q "^$PACKAGE\$" "$PREQLIST"; then
             # prerequisite package, will be installed automatically
-            if $VERBOSE; then
-                echo "$PACKAGE installed automatically"
-            fi
+							 
+            $VERBOSE && echo "$PACKAGE installed automatically"
+			  
         else
             # install package
             opkg $OPKGOPT install $PACKAGE
