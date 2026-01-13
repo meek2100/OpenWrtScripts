@@ -1,5 +1,8 @@
 # OpenWrtScripts
 
+![CI Status](https://github.com/richb-hanover/OpenWrtScripts/actions/workflows/ci.yaml/badge.svg)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+
 This is a set of scripts (sometimes also called "Openscripts") that report,
 configure and measure (and improve) latency in home routers. These scripts work
 for [OpenWrt](https://openwrt.org) and include:

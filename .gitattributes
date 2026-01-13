@@ -1,0 +1,24 @@
+# Set default behavior: normalize all text files to LF on checkin/checkout
+* text=auto eol=lf
+
+# Explicitly force shell scripts to always be LF
+# (Critical for OpenWrt/ash execution)
+*.sh text eol=lf
+*.bats text eol=lf
+
+# Configuration and Documentation
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.txt text eol=lf
+LICENSE text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# If you ever have binary files (images, archives), treat them as binary
+# (Prevents git from trying to fix line endings in non-text files)
+*.png binary
+*.jpg binary
+*.gz binary
+*.tar binary

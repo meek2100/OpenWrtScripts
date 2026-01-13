@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  # Run once a week on Sunday at 00:00 UTC
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  test:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+          cache: "pip"
+
+      - name: Set up Go (for shfmt)
+        uses: actions/setup-go@v6
+        with:
+          go-version: "stable"
+
+      - name: Install dependencies
+        run: |
+          # Install pre-commit
+          pip install pre-commit
+
+          # Install shfmt (required for the pre-commit hook)
+          go install mvdan.cc/sh/v3/cmd/shfmt@latest
+
+      - name: Run pre-commit
+        # Runs all hooks (shfmt, shellcheck, trailing-whitespace, etc.)
+        run: pre-commit run --all-files --show-diff-on-failure
+
+      - name: Run Tests
+        run: |
+          # Verify the summary test script
+          # We pass '10' as the argument to process 10 lines of sample data
+          if [ -f tests/test_summary.sh ]; then
+            echo "Running test_summary.sh..."
+            cd tests
+            sh test_summary.sh 10
+          else
+            echo "No tests found in tests/, skipping..."
+          fi
