@@ -82,6 +82,8 @@ the call to opkg to write the list of installed packages, though.
 "
 }
 
+if [ "${0##*/}" = "opkgscript.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+
 trap cleanup HUP INT TERM EXIT
 
 # parse command line options
@@ -205,3 +207,5 @@ fi
 
 # clean up and exit
 exit 0
+
+fi

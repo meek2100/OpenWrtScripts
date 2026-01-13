@@ -219,6 +219,8 @@ measure_direction() {
 #       5 sessions chosen empirically because total didn't increase much after that number)
 # "Z"            Required passphrase - see netperf.bufferbloat.net
 
+if [ "${0##*/}" = "betterspeedtest.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+
 # set an initial values for defaults
 TESTHOST="netperf.bufferbloat.net"
 TESTDUR="60"
@@ -305,4 +307,6 @@ else
   echo "$DATE Testing against $TESTHOST ($PROTO) with $MAXSESSIONS simultaneous sessions while pinging $PINGHOST ($TESTDUR seconds in each direction)"
   measure_direction "Download"
   measure_direction "  Upload"
+fi
+
 fi

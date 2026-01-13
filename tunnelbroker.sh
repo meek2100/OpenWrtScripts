@@ -14,6 +14,8 @@
 #    Note: The User_Name is the name you used to create the account
 #    Note: Find the Update_Key on the Advanced Tab of the Tunnel Details page.
 
+if [ "${0##*/}" = "tunnelbroker.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+
 User_Name=abdcef
 Tunnel_ID=123456
 Server_IPv4_Address=123.45.67.89
@@ -94,3 +96,5 @@ echo 'Done. You could also restart the router now to ensure these take effect.'
 # 1) Hit Ctl-D
 # 2) Edit six lines of the file (User_Name through Update_Key) to add your tunnelbroker values
 # 3) Type: sh tunnel.sh
+
+fi

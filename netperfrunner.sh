@@ -127,6 +127,8 @@ no_passphrase() {
 # "n" and "number" Number of simultaneous upload or download sessions (default: 4 sessions;
 #       4 sessions chosen to match default of RRUL test)
 
+if [ "${0##*/}" = "netperfrunner.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+
 # set an initial values for defaults
 TESTHOST="netperf.bufferbloat.net"
 TESTDUR="60"
@@ -277,3 +279,5 @@ echo "   Upload: $(awk '{s+=$1} END {print s}' "$ULFILE") Mbps"
 summarize_pings "$PINGFILE"
 
 clean_up
+
+fi

@@ -56,6 +56,8 @@ display_user_packages() {
 
 # ------- Main Routine -------
 
+if [ "${0##*/}" = "getstats.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+
 # Examine first argument to see if they're asking for help
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]
 then
@@ -120,3 +122,5 @@ echo "Done... Diagnostic information written to $out_fqn"
 echo " "
 
 # Now press Ctl-D, then type "sh getstats.sh"
+
+fi

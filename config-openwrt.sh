@@ -30,6 +30,8 @@
 # sh config.sh
 # Presto! (You should reboot the router when this completes.)
 
+if [ "${0##*/}" = "config-openwrt.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+
 # === Update root password =====================
 # Update the root password. Supply new password for NEWPASSWD and
 # uncomment six lines.
@@ -266,3 +268,5 @@ echo 'You should restart the router now for these changes to take effect...'
 # uci set wireless.@wifi-iface[4].encryption=$ENCRMODE
 
 # uci commit wireless
+
+fi

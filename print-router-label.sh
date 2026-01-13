@@ -104,4 +104,6 @@ print_router_label() {
   echo ""
 }
 
-print_router_label "$1"
+if [ "${0##*/}" = "print-router-label.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+    print_router_label "$1"
+fi

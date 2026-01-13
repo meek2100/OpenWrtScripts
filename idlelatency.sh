@@ -125,6 +125,8 @@ start_pings() {
 # “t” and “time” Time to run the test in each direction (default: 60 seconds)
 # “p” and “ping” Host to ping for latency measurements (default: gstatic.com)
 
+if [ "${0##*/}" = "idlelatency.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+
 # set an initial values for defaults
 TESTDUR="60"
 
@@ -177,3 +179,5 @@ echo "$DATE Testing idle line while pinging $PINGHOST ($TESTDUR seconds)"
 start_pings
 sleep "$TESTDUR"
 summarize_pings "$PINGFILE"
+
+fi

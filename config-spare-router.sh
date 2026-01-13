@@ -117,6 +117,8 @@ print_router_label() {
   echo ""
 }
 
+if [ "${0##*/}" = "config-spare-router.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+
 # === CONFIGURATION PARAMETERS ===
 # Set the variables to be used for configuration
 
@@ -374,3 +376,5 @@ reboot
 # sed -i s/enable-reflector=no/enable-reflector=yes/ /etc/avahi/avahi-daemon.conf
 # /etc/init.d/avahi-daemon start
 # /etc/init.d/avahi-daemon enable
+
+fi
