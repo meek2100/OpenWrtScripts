@@ -1,25 +1,25 @@
 #! /bin/sh
 # Netperfrunner.sh - a shell script that runs several netperf commands simultaneously.
-# This mimics the stress test of Flent (www.flent.org - formerly, "netperf-wrapper") 
-# from Toke <toke@toke.dk> but doesn't have the nice GUI result. 
+# This mimics the stress test of Flent (www.flent.org - formerly, "netperf-wrapper")
+# from Toke <toke@toke.dk> but doesn't have the nice GUI result.
 # This can live in /usr/lib/OpenWrtScripts
-# 
+#
 # When you start this script, it concurrently uploads and downloads multiple
-# streams (files) to a server on the Internet. This places a heavy load 
-# on the bottleneck link of your network (probably your connection to the 
+# streams (files) to a server on the Internet. This places a heavy load
+# on the bottleneck link of your network (probably your connection to the
 # Internet). It also starts a ping to a well-connected host. It displays:
 #
-# a) total bandwidth available 
+# a) total bandwidth available
 # b) the distribution of ping latency
- 
+
 # Usage: sh netperfrunner.sh -Z passphrase [ -4 -6 ] [ -H netperf-server ] [ -t duration ] [ -t host-to-ping ] [ -n simultaneous-streams ]
 
 # Options: If options are present:
 #
 # -H | --host:   DNS or Address of a netperf server (default - netperf.bufferbloat.net)
-#                Alternate servers are netperf-east (east coast US), netperf-west (California), 
+#                Alternate servers are netperf-east (east coast US), netperf-west (California),
 #                and netperf-eu (Denmark)
-# -4 | -6:       IPv4 or IPv6 
+# -4 | -6:       IPv4 or IPv6
 # -t | --time:   Duration for how long each direction's test should run - (default - 60 seconds)
 # -p | --ping:   Host to ping to measure latency (default - gstatic.com)
 # -n | --number: Number of simultaneous sessions (default - 5 sessions)
@@ -28,28 +28,28 @@
 # Copyright (c) 2014-2024 - Rich Brown rich.brown@blueberryhillsoftware.com
 # GPLv2
 
-  # Process the ping times from the passed-in file, and summarize the results
-  # grep to keep lines that have "time=", then sed to isolate the time stamps, and sort them
-  # Use awk to build an array of those values, and print first & last (which are min, max) 
-  # and compute average.
-  # If the number of samples is >= 10, also compute median, and 10th and 90th percentile readings
+# Process the ping times from the passed-in file, and summarize the results
+# grep to keep lines that have "time=", then sed to isolate the time stamps, and sort them
+# Use awk to build an array of those values, and print first & last (which are min, max)
+# and compute average.
+# If the number of samples is >= 10, also compute median, and 10th and 90th percentile readings
 
-  # Display the values as:
-  #   Latency: (in msec, 11 pings, 8.33% packet loss)
-  #    Min: 16.556
-  #  10pct: 16.561
-  # Median: 22.370
-  #    Avg: 21.203
-  #  90pct: 23.202
-  #    Max: 23.394
+# Display the values as:
+#   Latency: (in msec, 11 pings, 8.33% packet loss)
+#    Min: 16.556
+#  10pct: 16.561
+# Median: 22.370
+#    Avg: 21.203
+#  90pct: 23.202
+#    Max: 23.394
 
-summarize_pings() {     
-  
-grep "time" < "$1" | cat | \
-sed 's/^.*time=\([^ ]*\) ms/\1/'| \
-  # tee >&2 | \
-  sort -n | \
-  awk 'BEGIN {numdrops=0; numrows=0} \
+summarize_pings() {
+
+  grep "time" < "$1" | cat | \
+    sed 's/^.*time=\([^ ]*\) ms/\1/'| \
+    # tee >&2 | \
+    sort -n | \
+    awk 'BEGIN {numdrops=0; numrows=0} \
     { \
       # print ; \
       if ( $0 ~ /timeout/ ) { \
@@ -72,7 +72,7 @@ sed 's/^.*time=\([^ ]*\) ms/\1/'| \
       }; \
       pktloss = numdrops/(numdrops+numrows) * 100; \
       printf("\n  Latency: (in msec, %d pings, %4.2f%% packet loss)\n      Min: %4.3f \n    10pct: %4.3f \n   Median: %4.3f \n      Avg: %4.3f \n    90pct: %4.3f \n      Max: %4.3f\n", numrows, pktloss, arr[1], pc10, med, sum/numrows, pc90, arr[numrows] )\
-     }'
+    }'
 }
 
 # Print a line of dots as a progress indicator.
@@ -112,7 +112,7 @@ clean_up() {
 # Display "no passphrase" message and exit
 no_passphrase() {
   echo ""
-  echo "Missing passphrase - see https://$TESTHOST" 
+  echo "Missing passphrase - see https://$TESTHOST"
   echo ""
   exit 1
 }
@@ -150,38 +150,38 @@ ERRFILE=$(mktemp /tmp/netperfErr.XXXXXX) || exit 1
 # read the options
 
 # extract options and their arguments into variables.
-while [ $# -gt 0 ] 
+while [ $# -gt 0 ]
 do
-    case "$1" in
-	    -4|-6) TESTPROTO=$1; shift 1 ;;
-        -H|--host)
-            case "$2" in
-                "") echo "Missing hostname" ; exit 1 ;;
-                *) TESTHOST=$2 ; shift 2 ;;
-            esac ;;
-        -t|--time) 
-        	case "$2" in
-        		"") echo "Missing duration" ; exit 1 ;;
-                *) TESTDUR=$2 ; shift 2 ;;
-            esac ;;
-        -p|--ping)
-            case "$2" in
-                "") echo "Missing ping host" ; exit 1 ;;
-                *) PINGHOST=$2 ; shift 2 ;;
-            esac ;;
-        -n|--number)
-        	case "$2" in
-        		"") echo "Missing number of simultaneous sessions" ; exit 1 ;;
-        		*) MAXSESSIONS=$2 ; shift 2 ;;
-        	esac ;;
-        -Z)
-          case "$2" in
-              "") no_passphrase ; exit 1 ;;
-              *) PASSPHRASEOPTION="-Z $2" ; shift 2 ;;
-          esac ;;
-        --) shift ; break ;;
-        *) echo "Usage: sh Netperfrunner.sh -Z passphrase [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -n simultaneous-streams ]" ; exit 1 ;;
-    esac
+  case "$1" in
+    -4|-6) TESTPROTO=$1; shift 1 ;;
+    -H|--host)
+      case "$2" in
+        "") echo "Missing hostname" ; exit 1 ;;
+        *) TESTHOST=$2 ; shift 2 ;;
+      esac ;;
+    -t|--time)
+      case "$2" in
+        "") echo "Missing duration" ; exit 1 ;;
+        *) TESTDUR=$2 ; shift 2 ;;
+      esac ;;
+    -p|--ping)
+      case "$2" in
+        "") echo "Missing ping host" ; exit 1 ;;
+        *) PINGHOST=$2 ; shift 2 ;;
+      esac ;;
+    -n|--number)
+      case "$2" in
+        "") echo "Missing number of simultaneous sessions" ; exit 1 ;;
+        *) MAXSESSIONS=$2 ; shift 2 ;;
+      esac ;;
+    -Z)
+      case "$2" in
+        "") no_passphrase ; exit 1 ;;
+        *) PASSPHRASEOPTION="-Z $2" ; shift 2 ;;
+      esac ;;
+    --) shift ; break ;;
+    *) echo "Usage: sh Netperfrunner.sh -Z passphrase [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -n simultaneous-streams ]" ; exit 1 ;;
+  esac
 done
 
 # Start main test
@@ -195,9 +195,9 @@ fi
 
 if [ $TESTPROTO -eq "-4" ]
 then
-	PROTO="ipv4"
+  PROTO="ipv4"
 else
-	PROTO="ipv6"
+  PROTO="ipv6"
 fi
 DATE=`date "+%Y-%m-%d %H:%M:%S"`
 echo "$DATE Testing $TESTHOST ($PROTO) with $MAXSESSIONS streams down and up while pinging $PINGHOST. Takes about $TESTDUR seconds."
@@ -237,33 +237,33 @@ start_pings
 # netperf writes the sole output value (in Mbps) to stdout when completed
 for i in $( seq $MAXSESSIONS )
 do
-	netperf $TESTPROTO -H $TESTHOST -t TCP_STREAM -l $TESTDUR -v 0 -P 0 $PASSPHRASEOPTION >> $ULFILE 2>> $ERRFILE&
-	# echo "Starting upload #$i $!"
+  netperf $TESTPROTO -H $TESTHOST -t TCP_STREAM -l $TESTDUR -v 0 -P 0 $PASSPHRASEOPTION >> $ULFILE 2>> $ERRFILE&
+  # echo "Starting upload #$i $!"
 done
 
 # Start $MAXSESSIONS download datastreams from netperf server to the client
 for i in $( seq $MAXSESSIONS )
 do
-	netperf $TESTPROTO -H $TESTHOST -t TCP_MAERTS -l $TESTDUR -v 0 -P 0 $PASSPHRASEOPTION >> $DLFILE 2>> $ERRFILE&
-	# echo "Starting download #$i $!"
+  netperf $TESTPROTO -H $TESTHOST -t TCP_MAERTS -l $TESTDUR -v 0 -P 0 $PASSPHRASEOPTION >> $DLFILE 2>> $ERRFILE&
+  # echo "Starting download #$i $!"
 done
 
-# Wait until each of the background netperf processes completes 
+# Wait until each of the background netperf processes completes
 # echo "Process is $$"
 # echo `pgrep -P $$ netperf `
 
 for i in `pgrep -P $$ netperf`		# get a list of PIDs for child processes named 'netperf'
 do
-	# echo "Waiting for $i"
-	wait $i
+  # echo "Waiting for $i"
+  wait $i
 done
 
 # Check the length of the error file. If it's > 0, then there were errors
-  file_size=$(wc -c < "$ERRFILE")
-  if [ $file_size -gt 0 ]; then
-    clean_up                    # stop the machinery
-    no_passphrase               # print the error and exit
-  fi 
+file_size=$(wc -c < "$ERRFILE")
+if [ $file_size -gt 0 ]; then
+  clean_up                    # stop the machinery
+  no_passphrase               # print the error and exit
+fi
 
 # # Stop the pings after the netperf's are all done
 # kill -9 $ping_pid

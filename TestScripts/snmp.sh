@@ -1,7 +1,7 @@
 # Configure snmpd in OpenWrt
-# Edit the four variables below (COMMUNITYSTRING, LOCATION, CONTACT, SYSTEMNAME), 
+# Edit the four variables below (COMMUNITYSTRING, LOCATION, CONTACT, SYSTEMNAME),
 # then run this script using:
-# 
+#
 #  sh snmp.sh
 #
 COMMUNITYSTRING=public
@@ -27,5 +27,5 @@ uci set snmpd.@system[-1].sysName="$SYSTEMNAME"
 uci commit snmpd
 
 # restart the snmpd, and enable it to restart at next boot
-/etc/init.d/snmpd restart   
-/etc/init.d/snmpd enable  	
+/etc/init.d/snmpd restart
+/etc/init.d/snmpd enable

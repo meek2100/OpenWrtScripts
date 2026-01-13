@@ -31,15 +31,15 @@
 #    some of these changes can reset the wireless network.
 # 2. Connect the router's WAN port to the internet: this
 #    script needs to install certain packages. (Perhaps
-#    plug its WAN port into your new router's LAN port 
+#    plug its WAN port into your new router's LAN port
 #    while running this script.)
 # 3. Flash the router with factory firmware.
 #    Do NOT keep the settings.
-# 4. SSH in and execute the statements below. 
-# 
+# 4. SSH in and execute the statements below.
+#
 #    ssh root@192.168.1.1    # the default OpenWrt LAN address
 #    cd /tmp
-#    cat > config.sh 
+#    cat > config.sh
 #    [paste in the entire contents of this file, then hit ^D]
 #    sh config.sh
 #    Presto! (The router reboots when the script completes.)
@@ -52,68 +52,68 @@
 # === print_router_label() ===
 # This function is copy/pasted from "print-router-label.sh"
 # to keep the "config-spare-router.sh" script a single file.
-# THIS IS A MAINTENANCE HASSLE: 
+# THIS IS A MAINTENANCE HASSLE:
 # Changes to the printing must be updated in both places
 print_router_label() {
-	local ROOTPASSWD="${1:-"?"}" 
-	TODAY=$(date +"%Y-%m-%d")
-	DEVICE=$(cat /tmp/sysinfo/model)
-	OPENWRTVERSION=$(grep "DISTRIB_DESCRIPTION" /etc/openwrt_release | cut -d"=" -f2 | tr -d '"' | tr -d "'")
-	HOSTNAME=$(uci get system.@system[0].hostname)
-	LANIPADDRESS=$(uci get network.lan.ipaddr)
-	LOCALDNSTLD=$(uci get dhcp.@dnsmasq[0].domain) # top level domain for local names
+  local ROOTPASSWD="${1:-"?"}"
+  TODAY=$(date +"%Y-%m-%d")
+  DEVICE=$(cat /tmp/sysinfo/model)
+  OPENWRTVERSION=$(grep "DISTRIB_DESCRIPTION" /etc/openwrt_release | cut -d"=" -f2 | tr -d '"' | tr -d "'")
+  HOSTNAME=$(uci get system.@system[0].hostname)
+  LANIPADDRESS=$(uci get network.lan.ipaddr)
+  LOCALDNSTLD=$(uci get dhcp.@dnsmasq[0].domain) # top level domain for local names
 
-	# Create temporary file for both SSID and password
-	TMPFILE=$(mktemp /tmp/wifi_creds.XXXXXX)
+  # Create temporary file for both SSID and password
+  TMPFILE=$(mktemp /tmp/wifi_creds.XXXXXX)
 
-	# Get wifi credentials
-	uci show wireless |\
-	egrep =wifi-iface$ |\
-	cut -d= -f1 |\
-	while read s;
-	    do uci -q get $s.disabled |\
-	    grep -q 1 && continue;
-	    id=$(uci -q get $s.ssid);
-	    key=$(uci -q get $s.key);
-	    # Write both SSID and password to temporary file
-	    echo "$id:$key" > "$TMPFILE"
-	    break
-	done
+  # Get wifi credentials
+  uci show wireless |\
+    egrep =wifi-iface$ |\
+    cut -d= -f1 |\
+    while read s;
+  do uci -q get $s.disabled |\
+      grep -q 1 && continue;
+    id=$(uci -q get $s.ssid);
+    key=$(uci -q get $s.key);
+    # Write both SSID and password to temporary file
+    echo "$id:$key" > "$TMPFILE"
+    break
+  done
 
-	# Read both values from temporary file
-	if [ -f "$TMPFILE" ]; then
-	    WIFISSID=$(cut -d: -f1 "$TMPFILE")
-	    WIFIPASSWD=$(cut -d: -f2 "$TMPFILE")
-	    # Check if password is empty and replace with "<no password>"
-	    if [ -z "$WIFIPASSWD" ]; then
-	        WIFIPASSWD="<no password>"
-	    fi
-	else
-	    WIFISSID="unknown"
-	    WIFIPASSWD="unknown"
-	fi
+  # Read both values from temporary file
+  if [ -f "$TMPFILE" ]; then
+    WIFISSID=$(cut -d: -f1 "$TMPFILE")
+    WIFIPASSWD=$(cut -d: -f2 "$TMPFILE")
+    # Check if password is empty and replace with "<no password>"
+    if [ -z "$WIFIPASSWD" ]; then
+      WIFIPASSWD="<no password>"
+    fi
+  else
+    WIFISSID="unknown"
+    WIFIPASSWD="unknown"
+  fi
 
-	# Clean up temporary file
-	rm -f "$TMPFILE"
+  # Clean up temporary file
+  rm -f "$TMPFILE"
 
-	echo ""
-	echo "Print the following label and tape it to the router..."
-	echo ""
-	echo "======= Printed with: print-router-label.sh ======="
-	echo "     Device: $DEVICE"
-	echo "    OpenWrt: $OPENWRTVERSION" 
-	echo " Connect to: http://$HOSTNAME.$LOCALDNSTLD" 
-	echo "         or: ssh root@$HOSTNAME.$LOCALDNSTLD"
-	echo "        LAN: $LANIPADDRESS"
-	echo "       User: root"
-	echo "   Login PW: $ROOTPASSWD"
-	echo "  Wifi SSID: $WIFISSID"
-	echo "    Wifi PW: $WIFIPASSWD"
-	echo " Configured: $TODAY"
-	echo "=== See github.com/richb-hanover/OpenWrtScripts ==="
-	echo ""
-	echo "Label for Power Brick: $DEVICE"
-	echo ""
+  echo ""
+  echo "Print the following label and tape it to the router..."
+  echo ""
+  echo "======= Printed with: print-router-label.sh ======="
+  echo "     Device: $DEVICE"
+  echo "    OpenWrt: $OPENWRTVERSION"
+  echo " Connect to: http://$HOSTNAME.$LOCALDNSTLD"
+  echo "         or: ssh root@$HOSTNAME.$LOCALDNSTLD"
+  echo "        LAN: $LANIPADDRESS"
+  echo "       User: root"
+  echo "   Login PW: $ROOTPASSWD"
+  echo "  Wifi SSID: $WIFISSID"
+  echo "    Wifi PW: $WIFIPASSWD"
+  echo " Configured: $TODAY"
+  echo "=== See github.com/richb-hanover/OpenWrtScripts ==="
+  echo ""
+  echo "Label for Power Brick: $DEVICE"
+  echo ""
 }
 
 # === CONFIGURATION PARAMETERS ===
@@ -122,7 +122,7 @@ print_router_label() {
 HOSTNAME="SpareRouter"
 ROOTPASSWD="SpareRouter"
 TIMEZONE='EST5EDT,M3.2.0,M11.1.0' # see link below for other time zones
-ZONENAME='America/New York'			
+ZONENAME='America/New York'
 LANIPADDRESS="172.30.42.1"        # 172.30.42.1 minimizes chance of conflict
 LANSUBNET="255.255.255.0"
 SNMP_COMMUNITYSTRING=public
@@ -131,8 +131,8 @@ WIFIPASSWD=''
 ENCRMODE='none'
 
 # === Update root password =====================
-# Update the root password. 
-# 
+# Update the root password.
+#
 echo '*** Updating root password'
 passwd <<EOF
 $ROOTPASSWD
@@ -193,7 +193,7 @@ echo '*** SpareRouter configuration complete'
 
 # === Print the configuration label ===
 
-print_router_label "$ROOTPASSWD" 
+print_router_label "$ROOTPASSWD"
 
 # === Everything is done - reboot ===
 echo "Rebooting the router now for these changes to take effect..."
@@ -204,12 +204,12 @@ reboot
 
 # --- end of script ---
 
-# ================ 
-# 
+# ================
+#
 # The following sections are historical, and can be ignored:
 #
 # - Enable NetFlow export for traffic analysis
-# - Enable mDNS/ZeroConf on eth0 for internal routers *only* 
+# - Enable mDNS/ZeroConf on eth0 for internal routers *only*
 # - Change default IP addresses and subnets for interfaces
 # - Change default DNS names
 # - Set the radio channels
@@ -220,12 +220,12 @@ reboot
 # opkg -V0 install ppp-mod-pppoe # install PPPoE module
 # opkg -V0 install avahi-daemon  # install the mDNS daemon
 # opkg -V0 install fprobe        # install fprobe netflow exporter
-# opkg -V0 install snmpd         # install snmpd 
+# opkg -V0 install snmpd         # install snmpd
 
 # === Enable NetFlow export ====================
 # NetFlow export
-# Start fprobe now to send netflow records to local netflow 
-#   collector at the following address and port (I use http://intermapper.com) 
+# Start fprobe now to send netflow records to local netflow
+#   collector at the following address and port (I use http://intermapper.com)
 # Supply values for NETFLOWCOLLECTORADRS & NETFLOWCOLLECTORADRS
 # and uncomment nine lines
 #
@@ -233,10 +233,10 @@ reboot
 # NETFLOWCOLLECTORPORT=2055
 # echo 'Configuring and starting fprobe...'
 # fprobe -i ge00 -f ip -d 15 -e 60 $NETFLOWCOLLECTORADRS':'$NETFLOWCOLLECTORPORT
-# Also edit /etc/rc.local to add the same command 
+# Also edit /etc/rc.local to add the same command
 #   so that it will start after next reboot
 # sed -i '$ i\
-# fprobe -i ge00 -f ip -d 15 -e 60 NEWIPPORT' /etc/rc.local
+  # fprobe -i ge00 -f ip -d 15 -e 60 NEWIPPORT' /etc/rc.local
 # sed -i s#NEWIPPORT#$NETFLOWCOLLECTORADRS:$NETFLOWCOLLECTORPORT#g /etc/rc.local
 
 # === Enable SNMP daemon =======================
@@ -250,13 +250,13 @@ reboot
 # uci set snmpd.@com2sec6[-1].source=default
 # uci set snmpd.@com2sec6[-1].community=$SNMP_COMMUNITYSTRING
 # uci commit snmpd
-# /etc/init.d/snmpd restart   # default snmpd config uses 'public' 
+# /etc/init.d/snmpd restart   # default snmpd config uses 'public'
 # /etc/init.d/snmpd enable  	# community string for SNMPv1 & SNMPv2c
 
 # ==============================
 # Set Smart Queue Management (SQM) values for your own network
 #
-# Use a speed test (http://speedtest.net or other) to determine 
+# Use a speed test (http://speedtest.net or other) to determine
 # the speed of your own network, then set the speeds  accordingly.
 # Speeds below are in kbits per second (3000 = 3 megabits/sec)
 # For details about setting the SQM for your router, see:
@@ -282,12 +282,12 @@ reboot
 # /etc/init.d/sqm enable
 
 # === Update local DNS domain ==================
-# DNS: 
+# DNS:
 # Supply a desired DNS name for NEWDNS and uncomment three lines
 #
 # NEWDNS=home.lan
 # echo 'Changing local domain to' $NEWDNS
-# sed -i s#home.lan#$NEWDNS#g /etc/config/*  
+# sed -i s#home.lan#$NEWDNS#g /etc/config/*
 
 # === Update WiFi info for the access point ================
 # a) Assign the radio channels
@@ -326,7 +326,7 @@ reboot
 # Update the wifi password/security. To see all the wireless info:
 #	uci show wireless
 # The full list of encryption modes is at: (psk2 gives WPA2-PSK)
-# https://openwrt.org/docs/guide-user/network/wifi/basic#encryption_modes 
+# https://openwrt.org/docs/guide-user/network/wifi/basic#encryption_modes
 # echo 'Updating WiFi security information'
 
 # uci set wireless.@wifi-iface[0].key=$WIFIPASSWD
@@ -342,9 +342,9 @@ reboot
 # uci commit wireless
 
 # === Set up the WAN (eth0) interface for PPPoE =============
-# Default is DHCP, this sets it to PPPoE (typical for DSL/ADSL) 
+# Default is DHCP, this sets it to PPPoE (typical for DSL/ADSL)
 # From http://wiki.openwrt.org/doc/howto/internet.connection
-# Supply values for DSLUSERNAME and DSLPASSWORD 
+# Supply values for DSLUSERNAME and DSLPASSWORD
 # and uncomment ten lines
 #
 # echo 'Configuring WAN link for PPPoE'
@@ -366,8 +366,8 @@ reboot
 # Uncomment seven lines
 # echo 'Enabling mDNS on LAN interface'
 # sed -i '/use-iff/ a \
-# allow-interfaces=br-lan \
-# enable-dbus=no ' /etc/avahi/avahi-daemon.conf
+  # allow-interfaces=br-lan \
+  # enable-dbus=no ' /etc/avahi/avahi-daemon.conf
 # sed -i s/enable-reflector=no/enable-reflector=yes/ /etc/avahi/avahi-daemon.conf
 # /etc/init.d/avahi-daemon start
 # /etc/init.d/avahi-daemon enable

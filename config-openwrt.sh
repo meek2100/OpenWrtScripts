@@ -3,29 +3,29 @@
 # You should make a copy of this script, customize it to your needs,
 # then use the "To run this script" procedure (below).
 #
-# This script is designed to configure all the settings needed to 
-# set up your router after an initial "factory" firmware flash. 
+# This script is designed to configure all the settings needed to
+# set up your router after an initial "factory" firmware flash.
 #
 # There are sections below to configure many aspects of your router.
 # All the sections are commented out. There are sections for:
-# 
+#
 # - Update the root password
 # - Set up the eth0/WAN interface to connect to via PPPoE
 # - Update the software packages
 # - Set the time zone
 # - Enable SNMP for traffic monitoring and measurements
-# - Enable mDNS/ZeroConf on the br-lan (LAN) interface 
+# - Enable mDNS/ZeroConf on the br-lan (LAN) interface
 # - Set the SQM (Smart Queue Management) parameters
 #
 # ***** To run this script *****
 #
-# Flash the router with factory firmware. Then *telnet* in and execute these statements. 
+# Flash the router with factory firmware. Then *telnet* in and execute these statements.
 # You should do this over a wired connection because some of these changes
 # can reset the wireless network.
-# 
+#
 # telnet 192.168.1.1
 # cd /tmp
-# cat > config.sh 
+# cat > config.sh
 # [paste in the contents of this file, then hit ^D]
 # sh config.sh
 # Presto! (You should reboot the router when this completes.)
@@ -33,7 +33,7 @@
 # === Update root password =====================
 # Update the root password. Supply new password for NEWPASSWD and
 # uncomment six lines.
-# 
+#
 # echo 'Updating root password'
 # NEWPASSWD=your-new-root-password
 # passwd <<EOF
@@ -42,9 +42,9 @@
 # EOF
 
 # === Set up the WAN (eth0) interface ==================
-# Default is DHCP, this sets it to PPPoE (typical for DSL/ADSL) 
+# Default is DHCP, this sets it to PPPoE (typical for DSL/ADSL)
 # From http://wiki.openwrt.org/doc/howto/internet.connection
-# Supply values for DSLUSERNAME and DSLPASSWORD 
+# Supply values for DSLUSERNAME and DSLPASSWORD
 # and uncomment ten lines
 #
 # echo 'Configuring WAN link for PPPoE'
@@ -75,14 +75,14 @@
 # Set the time zone to non-default (other than UTC)
 # Full list of time zones is at:
 #	http://wiki.openwrt.org/doc/uci/system#time.zones
-# Use the URL above to find the desired ZONENAME and TIMEZONE, 
+# Use the URL above to find the desired ZONENAME and TIMEZONE,
 # then uncomment seven lines
 #
 # TIMEZONE='EST5EDT,M3.2.0,M11.1.0'
 # ZONENAME='America/New York'
 # echo 'Setting timezone to' $TIMEZONE
 # uci set system.@system[0].timezone="$TIMEZONE"
-# echo 'Setting zone name to' $ZONENAME 
+# echo 'Setting zone name to' $ZONENAME
 # uci set system.@system[0].zonename="$ZONENAME"
 # uci commit system
 
@@ -98,7 +98,7 @@
 # uci set snmpd.@com2sec6[-1].source=default
 # uci set snmpd.@com2sec6[-1].community=$COMMUNITYSTRING
 # uci commit snmpd
-# /etc/init.d/snmpd restart   # default snmpd config uses 'public' 
+# /etc/init.d/snmpd restart   # default snmpd config uses 'public'
 # /etc/init.d/snmpd enable  	# community string for SNMPv1 & SNMPv2c
 
 # === Enable mDNS/ZeroConf =====================
@@ -108,8 +108,8 @@
 #
 # echo 'Enabling mDNS on LAN interface'
 # sed -i '/use-iff/ a \
-# allow-interfaces=br-lan \
-# enable-dbus=no ' /etc/avahi/avahi-daemon.conf
+  # allow-interfaces=br-lan \
+  # enable-dbus=no ' /etc/avahi/avahi-daemon.conf
 # sed -i s/enable-reflector=no/enable-reflector=yes/ /etc/avahi/avahi-daemon.conf
 # /etc/init.d/avahi-daemon start
 # /etc/init.d/avahi-daemon enable
@@ -117,7 +117,7 @@
 # ==============================
 # Set Smart Queue Management (SQM) values for your own network
 #
-# Use a speed test (http://dslreports.com/speedtest) to determine 
+# Use a speed test (http://dslreports.com/speedtest) to determine
 # the speed of your own network, then set the speeds  accordingly.
 # Speeds below are in kbits per second (3000 = 3 megabits/sec)
 # For details about setting the SQM for your router, see:
@@ -146,12 +146,12 @@
 echo 'You should restart the router now for these changes to take effect...'
 # --- end of script ---
 
-# ================ 
-# 
+# ================
+#
 # The following sections have not been completed, and should not be uncommented:
 #
 # - Enable NetFlow export for traffic analysis
-# - Enable mDNS/ZeroConf on eth0 for internal routers *only* 
+# - Enable mDNS/ZeroConf on eth0 for internal routers *only*
 # - Change default IP addresses and subnets for interfaces
 # - Change default DNS names
 # - Set the radio channels
@@ -160,8 +160,8 @@ echo 'You should restart the router now for these changes to take effect...'
 
 # === Enable NetFlow export ====================
 # NetFlow export
-# Start fprobe now to send netflow records to local netflow 
-#   collector at the following address and port (I use http://intermapper.com) 
+# Start fprobe now to send netflow records to local netflow
+#   collector at the following address and port (I use http://intermapper.com)
 # Supply values for NETFLOWCOLLECTORADRS & NETFLOWCOLLECTORADRS
 # and uncomment nine lines
 #
@@ -169,16 +169,16 @@ echo 'You should restart the router now for these changes to take effect...'
 # NETFLOWCOLLECTORPORT=2055
 # echo 'Configuring and starting fprobe...'
 # fprobe -i ge00 -f ip -d 15 -e 60 $NETFLOWCOLLECTORADRS':'$NETFLOWCOLLECTORPORT
-# Also edit /etc/rc.local to add the same command 
+# Also edit /etc/rc.local to add the same command
 #   so that it will start after next reboot
 # sed -i '$ i\
-# fprobe -i ge00 -f ip -d 15 -e 60 NEWIPPORT' /etc/rc.local
+  # fprobe -i ge00 -f ip -d 15 -e 60 NEWIPPORT' /etc/rc.local
 # sed -i s#NEWIPPORT#$NETFLOWCOLLECTORADRS:$NETFLOWCOLLECTORPORT#g /etc/rc.local
 
 # === Enable mDNS/ZeroConf =====================
 # Enable avahi to relay mDNS queries out the "WAN" port.
 # YOU SHOULD NEVER DO THIS if CeroWrt is your primary router - that is, if it's
-# connected directly to the Internet, as it will leak private information. 
+# connected directly to the Internet, as it will leak private information.
 # To enable mDNS, uncomment two lines, and reboot the router afterwards
 ###
 ### IF THIS IS YOUR PRIMARY ROUTER, DO NOT DO THIS!       ###
@@ -189,7 +189,7 @@ echo 'You should restart the router now for these changes to take effect...'
 # sed -i s/deny-interfaces=ge00/#deny-interfaces=ge00/g /etc/avahi/avahi-daemon.conf
 
 # === Update IP Subnet Ranges ==================
-# Changing configuration for Subnets, DNS, SSIDs, etc. 
+# Changing configuration for Subnets, DNS, SSIDs, etc.
 # See this page for details:
 #    http://www.bufferbloat.net/projects/cerowrt/wiki/Changing_your_cerowrt_ip_addresses
 # If you do any of these, you should reboot the router afterwards
@@ -201,15 +201,15 @@ echo 'You should restart the router now for these changes to take effect...'
 # NEWIP=your.new.ip
 # REVIP=ip.new.your
 # echo 'Changing IP subnets to' $NEWIP 'and' $REVIP
-# sed -i s#172.30.42#$NEWIP#g /etc/config/* 
+# sed -i s#172.30.42#$NEWIP#g /etc/config/*
 
 # === Update local DNS domain ==================
-# DNS: 
+# DNS:
 # Supply a desired DNS name for NEWDNS and uncomment three lines
 #
 # NEWDNS=home.lan
 # echo 'Changing local domain to' $NEWDNS
-# sed -i s#home.lan#$NEWDNS#g /etc/config/*  
+# sed -i s#home.lan#$NEWDNS#g /etc/config/*
 
 # === Update WiFi info for the access point ================
 # a) Assign the radio channels
@@ -250,7 +250,7 @@ echo 'You should restart the router now for these changes to take effect...'
 # The full list of encryption modes is at: (psk2 gives WPA2-PSK)
 #	http://wiki.openwrt.org/doc/uci/wireless#wpa.modes
 # Set WIFIPASSWD and the ENCRMODE, and then uncomment the remaining lines.
-# 
+#
 # echo 'Updating WiFi security information'
 # WIFIPASSWD='Beatthebloat'
 # ENCRMODE=psk2
