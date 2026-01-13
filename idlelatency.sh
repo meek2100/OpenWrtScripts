@@ -30,7 +30,7 @@ summarize_pings() {
   kill_pings
   kill_dots
 
-  sed 's/^.*time=\([^ ]*\) ms/\1/' < $1 | grep -v "PING" | sort -n | \
+  sed 's/^.*time=\([^ ]*\) ms/\1/' < "$1" | grep -v "PING" | sort -n | \
     awk 'BEGIN {numdrops=0; numrows=0;} \
     { \
       if ( $0 ~ /timeout/ ) { \
@@ -52,7 +52,7 @@ summarize_pings() {
     }'
 
   # and finally remove the PINGFILE
-  rm $1
+  rm "$1"
 
 }
 
@@ -69,8 +69,8 @@ print_dots() {
 
 kill_dots() {
   # echo "Pings: $ping_pid Dots: $dots_pid"
-  kill -9 $dots_pid
-  wait $dots_pid 2>/dev/null
+  kill -9 "$dots_pid"
+  wait "$dots_pid" 2>/dev/null
   dots_pid=0
 }
 
@@ -78,8 +78,8 @@ kill_dots() {
 
 kill_pings() {
   # echo "Pings: $ping_pid Dots: $dots_pid"
-  kill -9 $ping_pid
-  wait $ping_pid 2>/dev/null
+  kill -9 "$ping_pid"
+  wait "$ping_pid" 2>/dev/null
   ping_pid=0
 }
 
@@ -88,7 +88,7 @@ kill_pings() {
 kill_pings_and_dots_and_exit() {
   kill_dots
   kill_pings
-  echo "\nStopped"
+  printf "\nStopped\n"
   exit 1
 }
 
@@ -98,7 +98,7 @@ kill_pings_and_dots_and_exit() {
 start_pings() {
 
   # Create temp file
-  PINGFILE=`mktemp /tmp/measurepings.XXXXXX` || exit 1
+  PINGFILE=$(mktemp /tmp/measurepings.XXXXXX) || exit 1
 
   # Start dots
   print_dots &
@@ -106,11 +106,11 @@ start_pings() {
   # echo "Dots PID: $dots_pid"
 
   # Start Ping
-  if [ $TESTPROTO -eq "-4" ]
+  if [ "$TESTPROTO" -eq "-4" ]
   then
-    "${PING4}" $PINGHOST > $PINGFILE &
+    "${PING4}" "$PINGHOST" > "$PINGFILE" &
   else
-    "${PING6}" $PINGHOST > $PINGFILE &
+    "${PING6}" "$PINGHOST" > "$PINGFILE" &
   fi
   ping_pid=$!
   # echo "Ping PID: $ping_pid"
@@ -159,13 +159,14 @@ done
 
 # Start the main test
 
-if [ $TESTPROTO -eq "-4" ]
+if [ "$TESTPROTO" -eq "-4" ]
 then
   PROTO="ipv4"
 else
+  # shellcheck disable=SC2034
   PROTO="ipv6"
 fi
-DATE=`date "+%Y-%m-%d %H:%M:%S"`
+DATE=$(date "+%Y-%m-%d %H:%M:%S")
 
 # Catch a Ctl-C and stop the pinging and the print_dots
 trap kill_pings_and_dots_and_exit HUP INT TERM
@@ -174,5 +175,5 @@ echo "THIS SCRIPT IS NO LONGER MAINTAINED."
 echo "Use the --idle option with the betterspeedtest.sh script"
 echo "$DATE Testing idle line while pinging $PINGHOST ($TESTDUR seconds)"
 start_pings
-sleep $TESTDUR
-summarize_pings $PINGFILE
+sleep "$TESTDUR"
+summarize_pings "$PINGFILE"

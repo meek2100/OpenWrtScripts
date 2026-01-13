@@ -55,6 +55,7 @@
 # THIS IS A MAINTENANCE HASSLE:
 # Changes to the printing must be updated in both places
 print_router_label() {
+  # shellcheck disable=SC3043
   local ROOTPASSWD="${1:-"?"}"
   TODAY=$(date +"%Y-%m-%d")
   DEVICE=$(cat /tmp/sysinfo/model)
@@ -68,13 +69,13 @@ print_router_label() {
 
   # Get wifi credentials
   uci show wireless |\
-    egrep =wifi-iface$ |\
+    grep -E '=wifi-iface$' |\
     cut -d= -f1 |\
-    while read s;
-  do uci -q get $s.disabled |\
+    while read -r s;
+  do uci -q get "$s".disabled |\
       grep -q 1 && continue;
-    id=$(uci -q get $s.ssid);
-    key=$(uci -q get $s.key);
+    id=$(uci -q get "$s".ssid);
+    key=$(uci -q get "$s".key);
     # Write both SSID and password to temporary file
     echo "$id:$key" > "$TMPFILE"
     break
@@ -124,7 +125,9 @@ ROOTPASSWD="SpareRouter"
 TIMEZONE='EST5EDT,M3.2.0,M11.1.0' # see link below for other time zones
 ZONENAME='America/New York'
 LANIPADDRESS="172.30.42.1"        # 172.30.42.1 minimizes chance of conflict
+# shellcheck disable=SC2034
 LANSUBNET="255.255.255.0"
+# shellcheck disable=SC2034
 SNMP_COMMUNITYSTRING=public
 WIFISSID="SpareRouter"
 WIFIPASSWD=''
@@ -151,7 +154,7 @@ uci commit system
 # Make the change in the /etc/config/network file to avoid
 # perturbing the SSH session. Reboot at the end of the script
 echo "*** Changing IP address to $LANIPADDRESS"
-sed -i s#192.168.1.1#$LANIPADDRESS#g /etc/config/network
+sed -i s#192.168.1.1#"$LANIPADDRESS"#g /etc/config/network
 # sleep 5
 
 # === Enable Wifi on the first radio with configured parameters

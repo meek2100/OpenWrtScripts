@@ -42,6 +42,7 @@
 #
 
 print_router_label() {
+  # shellcheck disable=SC3043
   local ROOTPASSWD="${1:-"?"}"
   TODAY=$(date +"%Y-%m-%d")
   DEVICE=$(cat /tmp/sysinfo/model)
@@ -55,13 +56,13 @@ print_router_label() {
 
   # Get wifi credentials
   uci show wireless |\
-    egrep =wifi-iface$ |\
+    grep -E '=wifi-iface$' |\
     cut -d= -f1 |\
-    while read s;
-  do uci -q get $s.disabled |\
+    while read -r s;
+  do uci -q get "$s".disabled |\
       grep -q 1 && continue;
-    id=$(uci -q get $s.ssid);
-    key=$(uci -q get $s.key);
+    id=$(uci -q get "$s".ssid);
+    key=$(uci -q get "$s".key);
     # Write both SSID and password to temporary file
     echo "$id:$key" > "$TMPFILE"
     break

@@ -47,12 +47,12 @@ opkg install 6in4
 echo 'Setting up HE.net tunnel'
 uci set network.henet=interface
 uci set network.henet.proto=6in4
-uci set network.henet.peeraddr=$Server_IPv4_Address
-uci set network.henet.ip6addr=$Client_IPv6_Address
-uci set network.henet.ip6prefix=$Routed_48_Prefix
-uci set network.henet.tunnelid=$Tunnel_ID
-uci set network.henet.username=$User_Name
-uci set network.henet.password=$Update_Key
+uci set network.henet.peeraddr="$Server_IPv4_Address"
+uci set network.henet.ip6addr="$Client_IPv6_Address"
+uci set network.henet.ip6prefix="$Routed_48"
+uci set network.henet.tunnelid="$Tunnel_ID"
+uci set network.henet.username="$User_Name"
+uci set network.henet.password="$Update_Key"
 uci set network.henet.mtu=1424
 uci set network.henet.ttl=64
 uci commit network

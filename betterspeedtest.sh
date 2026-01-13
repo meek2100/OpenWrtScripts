@@ -174,7 +174,7 @@ measure_direction() {
   # netperf writes the sole output value (in Mbps) to stdout when completed
   for i in $( seq "$MAXSESSIONS" )
   do
-    netperf "$TESTPROTO" -H "$TESTHOST" -t "$dir" -l "$TESTDUR" -v 0 -P 0 $PASSPHRASEOPTION >> "$SPEEDFILE" 2>> $ERRFILE &
+    netperf "$TESTPROTO" -H "$TESTHOST" -t "$dir" -l "$TESTDUR" -v 0 -P 0 "$PASSPHRASEOPTION" >> "$SPEEDFILE" 2>> "$ERRFILE" &
     # echo "Starting PID $! params: $TESTPROTO -H $TESTHOST -t $dir -l $TESTDUR -v 0 -P 0 >> $SPEEDFILE"
   done
 
@@ -190,7 +190,7 @@ measure_direction() {
 
   # Check the length of the error file. If it's > 0, then there were errors
   file_size=$(wc -c < "$ERRFILE")
-  if [ $file_size -gt 0 ]; then
+  if [ "$file_size" -gt 0 ]; then
     clean_up                    # stop the machinery
     no_passphrase               # print the error and exit
   fi
@@ -269,7 +269,7 @@ do
       IDLETEST=true ; shift 1 ;;
     -Z)
       case "$2" in
-        "") no_passphrase ; exit 1 ;;
+        "") no_passphrase ;;
         *) PASSPHRASEOPTION="-Z $2" ; shift 2 ;;
       esac ;;
     --) shift ; break ;;

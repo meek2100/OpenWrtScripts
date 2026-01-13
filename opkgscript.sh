@@ -17,7 +17,7 @@
 #    0.1.0 - Initial release
 
 PCKGLIST=/etc/config/opkg.installed  # default package list
-SCRIPTNAME=$(basename $0)            # name of this script
+SCRIPTNAME=$(basename "$0")            # name of this script
 COMMAND=""                           # command to execute
 
 INSTLIST=$(mktemp)                   # list of packages to install
@@ -27,13 +27,14 @@ UPDATE=false                         # update the package database
 OPKGOPT=""                           # options for opkg calls
 VERBOSE=false                        # be verbose
 
+# shellcheck disable=SC2329
 cleanup () {
-    rm -f $INSTLIST $PREQLIST
+    rm -f "$INSTLIST" "$PREQLIST"
 }
 
 echo_usage () {
     echo \
-"Usage: $(basename $0) [options...] command [packagelist]
+"Usage: $(basename "$0") [options...] command [packagelist]
 
 Available commands:
     help                print this help text
@@ -81,7 +82,7 @@ the call to opkg to write the list of installed packages, though.
 "
 }
 
-trap cleanup SIGHUP SIGINT SIGTERM EXIT
+trap cleanup HUP INT TERM EXIT
 
 # parse command line options
 while getopts "htuvw" OPTS; do
@@ -97,13 +98,13 @@ while getopts "htuvw" OPTS; do
             exit 0;;
     esac
 done
-shift $(($OPTIND - 1))
+shift $((OPTIND - 1))
 
 # Set the command
 COMMAND=$1
 
 # Set name of the package list
-if [ "x$2" != "x" ]; then
+if [ -n "$2" ]; then
     PCKGLIST="$2"
 fi
 
@@ -111,13 +112,13 @@ fi
 # Help
 #
 
-if [ "x$COMMAND" == "x" ]; then
+if [ -z "$COMMAND" ]; then
     echo "No command specified."
     echo ""
     COMMAND="help"
 fi
 
-if [ $COMMAND == "help" ]; then
+if [ "$COMMAND" = "help" ]; then
     echo_usage
     exit 0
 fi
@@ -126,7 +127,7 @@ fi
 # Write
 #
 
-if [ $COMMAND = "write" ] ; then
+if [ "$COMMAND" = "write" ] ; then
     if $VERBOSE; then
         echo "Saving package list to $PCKGLIST"
     fi
@@ -140,25 +141,25 @@ fi
 #
 
 if $UPDATE; then
-    opkg $OPKGOPT update
+    opkg "$OPKGOPT" update
 fi
 
 #
 # Check
 #
 
-if [ $COMMAND == "install" ] || [ $COMMAND == "script" ]; then
+if [ "$COMMAND" = "install" ] || [ "$COMMAND" = "script" ]; then
     # detect uninstalled packages
-    if $VERBOSE && [ $COMMAND != "script" ]; then
+    if $VERBOSE && [ "$COMMAND" != "script" ]; then
         echo "Checking packages... "
     fi
-    cat "$PCKGLIST" | while read PACKAGE SEP VERSION; do
+    cat "$PCKGLIST" | while read -r PACKAGE _ _; do
         # opkg status is much faster than opkg info
         # it only returns status of installed packages
         #if ! opkg status $PACKAGE | grep -q "^Status:.* installed"; then
-        if [ "x$(opkg status $PACKAGE)" == "x" ]; then
+        if [ -z "$(opkg status "$PACKAGE")" ]; then
             # collect uninstalled packages
-            echo $PACKAGE >> $INSTLIST
+            echo "$PACKAGE" >> "$INSTLIST"
             # collect prerequisites
             opkg info "$PACKAGE" |
             awk "/^Depends: / {
@@ -174,9 +175,9 @@ fi
 # Install or script
 #
 
-if [ $COMMAND == "install" ]; then
+if [ "$COMMAND" = "install" ]; then
     # install packages
-    cat "$INSTLIST" | while read PACKAGE; do
+    while read -r PACKAGE; do
         if grep -q "^$PACKAGE\$" "$PREQLIST"; then
             # prerequisite package, will be installed automatically
             if $VERBOSE; then
@@ -184,17 +185,17 @@ if [ $COMMAND == "install" ]; then
             fi
         else
             # install package
-            opkg $OPKGOPT install $PACKAGE
+            opkg "$OPKGOPT" install "$PACKAGE"
         fi
-    done
-elif [ $COMMAND == "script" ]; then
+    done < "$INSTLIST"
+elif [ "$COMMAND" = "script" ]; then
     # output install script
     echo "#! /bin/sh"
-    cat "$INSTLIST" | while read PACKAGE; do
+    while read -r PACKAGE; do
         if ! grep -q "^$PACKAGE\$" "$PREQLIST"; then
             echo "opkg install $PACKAGE"
         fi
-    done
+    done < "$INSTLIST"
 else
     echo "Unknown command '$COMMAND'."
     echo ""

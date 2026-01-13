@@ -32,32 +32,32 @@ out_fqn=/tmp/openwrtstats.txt
 # Redirect both standard out and error out to that file.
 
 display_command() {
-  echo "[ $1 ]"  >> $out_fqn
-  eval "$1"      >> $out_fqn 2>> $out_fqn
-  echo -e "\n"   >> $out_fqn
+  echo "[ $1 ]"  >> "$out_fqn"
+  eval "$1"      >> "$out_fqn" 2>> "$out_fqn"
+  printf "\n"    >> "$out_fqn"
 }
 
 # ------- display_user_packages() ---------
 # Display a list of all packages installed after the kernel was built
 
 display_user_packages() {
-  echo "[ User-installed packages ]" >> $out_fqn
+  echo "[ User-installed packages ]" >> "$out_fqn"
 
-  install_time=`opkg status kernel | awk '$1 == "Installed-Time:" { print $2 }'`
+  install_time=$(opkg status kernel | awk '$1 == "Installed-Time:" { print $2 }')
   opkg status | awk '$1 == "Package:" {package = $2} \
   $1 == "Status:" { user_inst = / user/ && / installed/ } \
-    $1 == "Installed-Time:" && $2 != '$install_time' && user_inst { print package }' | \
-    sort >> $out_fqn 2>> $out_fqn
+    $1 == "Installed-Time:" && $2 != '"$install_time"' && user_inst { print package }' | \
+    sort >> "$out_fqn" 2>> "$out_fqn"
 
-  echo -e "\n" >> $out_fqn
+  printf "\n" >> "$out_fqn"
 }
 
 # ------- Main Routine -------
 
 # Examine first argument to see if they're asking for help
-if [ "$1" == "-h" ] || [ "$1" == "--help" ]
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]
 then
-  echo 'Usage: sh $0 "command 1 to be executed" "command 2" "command 3" ... '
+  echo "Usage: sh $0 \"command 1 to be executed\" \"command 2\" \"command 3\" ... "
   echo ' '
   exit
 fi
@@ -65,7 +65,7 @@ fi
 
 # Write a heading for the file
 
-echo "===== $0 at `date` =====" > $out_fqn
+echo "===== $0 at $(date) =====" > "$out_fqn"
 
 # Display four sets of commands:
 # 1. Common diagnostic commands
@@ -76,7 +76,7 @@ echo "===== $0 at `date` =====" > $out_fqn
 # 1. Display the common diagnostic commands
 # These are read from the list delimited by "EOF"
 
-while read LINE; do
+while read -r LINE; do
   display_command "$LINE"
 done << EOF
 cat /etc/banner
@@ -101,7 +101,7 @@ display_user_packages
 
 # 4. Display the long/less frequently-needed commands
 
-while read LINE; do
+while read -r LINE; do
   display_command "$LINE"
 done << EOF
 ifconfig
@@ -110,7 +110,7 @@ dmesg
 EOF
 
 # End the report
-echo "===== end of $0 =====" >> $out_fqn
+echo "===== end of $0 =====" >> "$out_fqn"
 
 
 #cat $out_fqn

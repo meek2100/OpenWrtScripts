@@ -140,9 +140,9 @@ MAXSESSIONS=4
 TESTPROTO=-4
 
 # Create temp files for netperf up/download results
-ULFILE=`mktemp /tmp/netperfUL.XXXXXX` || exit 1
-DLFILE=`mktemp /tmp/netperfDL.XXXXXX` || exit 1
-PINGFILE=`mktemp /tmp/measurepings.XXXXXX` || exit 1
+ULFILE=$(mktemp /tmp/netperfUL.XXXXXX) || exit 1
+DLFILE=$(mktemp /tmp/netperfDL.XXXXXX) || exit 1
+PINGFILE=$(mktemp /tmp/measurepings.XXXXXX) || exit 1
 ERRFILE=$(mktemp /tmp/netperfErr.XXXXXX) || exit 1
 
 # echo $ULFILE $DLFILE $PINGFILE
@@ -176,7 +176,7 @@ do
       esac ;;
     -Z)
       case "$2" in
-        "") no_passphrase ; exit 1 ;;
+        "") no_passphrase ;;
         *) PASSPHRASEOPTION="-Z $2" ; shift 2 ;;
       esac ;;
     --) shift ; break ;;
@@ -193,13 +193,13 @@ if ! command -v netperf >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ $TESTPROTO -eq "-4" ]
+if [ "$TESTPROTO" -eq "-4" ]
 then
   PROTO="ipv4"
 else
   PROTO="ipv6"
 fi
-DATE=`date "+%Y-%m-%d %H:%M:%S"`
+DATE=$(date "+%Y-%m-%d %H:%M:%S")
 echo "$DATE Testing $TESTHOST ($PROTO) with $MAXSESSIONS streams down and up while pinging $PINGHOST. Takes about $TESTDUR seconds."
 # echo "It downloads four files, and concurrently uploads four files for maximum stress."
 # echo "It also pings a well-connected host, and prints a summary of the latency results."
@@ -235,16 +235,16 @@ start_pings
 
 # Start $MAXSESSIONS upload datastreams from netperf client to the netperf server
 # netperf writes the sole output value (in Mbps) to stdout when completed
-for i in $( seq $MAXSESSIONS )
+for i in $( seq "$MAXSESSIONS" )
 do
-  netperf $TESTPROTO -H $TESTHOST -t TCP_STREAM -l $TESTDUR -v 0 -P 0 $PASSPHRASEOPTION >> $ULFILE 2>> $ERRFILE&
+  netperf "$TESTPROTO" -H "$TESTHOST" -t TCP_STREAM -l "$TESTDUR" -v 0 -P 0 "$PASSPHRASEOPTION" >> "$ULFILE" 2>> "$ERRFILE"&
   # echo "Starting upload #$i $!"
 done
 
 # Start $MAXSESSIONS download datastreams from netperf server to the client
-for i in $( seq $MAXSESSIONS )
+for i in $( seq "$MAXSESSIONS" )
 do
-  netperf $TESTPROTO -H $TESTHOST -t TCP_MAERTS -l $TESTDUR -v 0 -P 0 $PASSPHRASEOPTION >> $DLFILE 2>> $ERRFILE&
+  netperf "$TESTPROTO" -H "$TESTHOST" -t TCP_MAERTS -l "$TESTDUR" -v 0 -P 0 "$PASSPHRASEOPTION" >> "$DLFILE" 2>> "$ERRFILE"&
   # echo "Starting download #$i $!"
 done
 
@@ -252,15 +252,15 @@ done
 # echo "Process is $$"
 # echo `pgrep -P $$ netperf `
 
-for i in `pgrep -P $$ netperf`		# get a list of PIDs for child processes named 'netperf'
+for i in $(pgrep -P $$ netperf)		# get a list of PIDs for child processes named 'netperf'
 do
   # echo "Waiting for $i"
-  wait $i
+  wait "$i"
 done
 
 # Check the length of the error file. If it's > 0, then there were errors
 file_size=$(wc -c < "$ERRFILE")
-if [ $file_size -gt 0 ]; then
+if [ "$file_size" -gt 0 ]; then
   clean_up                    # stop the machinery
   no_passphrase               # print the error and exit
 fi
@@ -272,8 +272,8 @@ fi
 # sum up all the values (one line per netperf test) from $DLFILE and $ULFILE
 # then summarize the ping stat's
 echo ""
-echo " Download: " `awk '{s+=$1} END {print s}' $DLFILE` Mbps
-echo "   Upload: " `awk '{s+=$1} END {print s}' $ULFILE` Mbps
-summarize_pings $PINGFILE
+echo " Download: " $(awk '{s+=$1} END {print s}' "$DLFILE") Mbps
+echo "   Upload: " $(awk '{s+=$1} END {print s}' "$ULFILE") Mbps
+summarize_pings "$PINGFILE"
 
 clean_up
