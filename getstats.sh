@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 #
 # getstats.sh - Collect diagnostic information about OpenWrt
 # Write the data to a file (usually /tmp/openwrtstats.txt)

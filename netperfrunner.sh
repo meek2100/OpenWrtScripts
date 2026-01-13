@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 # Netperfrunner.sh - a shell script that runs several netperf commands simultaneously.
 # This mimics the stress test of Flent (www.flent.org - formerly, "netperf-wrapper")
 # from Toke <toke@toke.dk> but doesn't have the nice GUI result.

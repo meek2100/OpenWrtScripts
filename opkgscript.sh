@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 # Write a list of packages currently installed or read that list,
 # presumably after a firmware upgrade, in order to reinstall all packages
@@ -192,7 +192,7 @@ if [ "$COMMAND" = "install" ]; then
     done < "$INSTLIST"
 elif [ "$COMMAND" = "script" ]; then
     # output install script
-    echo "#! /bin/sh"
+    echo "#!/bin/sh"
     while read -r PACKAGE; do
         if ! grep -q "^$PACKAGE\$" "$PREQLIST"; then
             echo "opkg install $PACKAGE"
