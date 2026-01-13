@@ -33,6 +33,7 @@ Describe 'betterspeedtest.sh'
       When run script ./betterspeedtest.sh
       The status should be failure
       The stderr should include "netperf is not installed"
+      The stdout should be present
     End
   End
 End

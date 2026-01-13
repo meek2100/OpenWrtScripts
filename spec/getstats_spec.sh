@@ -12,8 +12,21 @@ Describe 'getstats.sh'
   Mock uptime
     echo "10:00:00 up 1 day"
   End
+
+  # Updated Mock opkg to handle 'status kernel' vs other packages
   Mock opkg
-    echo "Package: test-pkg"
+    case "$*" in
+      *"status kernel"*)
+        echo "Package: kernel"
+        echo "Status: install hold installed"
+        echo "Installed-Time: 1000000000"
+        ;;
+      *)
+        echo "Package: test-pkg"
+        echo "Status: install user installed"
+        echo "Installed-Time: 2000000000"
+        ;;
+    esac
   End
 
   It 'collects stats and writes to the output file'
@@ -23,6 +36,7 @@ Describe 'getstats.sh'
     When run script ./getstats.sh
     The status should be success
     # Verify the script tried to run standard commands
+    The stdout should include "Done..."
     The file "/tmp/openwrtstats.txt" should be exist
     The file "/tmp/openwrtstats.txt" should include "Linux OpenWrt"
   End
