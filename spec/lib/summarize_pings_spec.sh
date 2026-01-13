@@ -6,10 +6,9 @@ Describe 'lib/summarize_pings.sh'
     It 'calculates stats correctly from sample input'
       # We provide the "Text" (raw data) to interpret
       Data
-        # formatting specific to how your script expects it (grep finds "time=")
-        64 bytes from 8.8.8.8: icmp_seq=1 ttl=116 time=10.0 ms
-        64 bytes from 8.8.8.8: icmp_seq=2 ttl=116 time=20.0 ms
-        64 bytes from 8.8.8.8: icmp_seq=3 ttl=116 time=30.0 ms
+        #|64 bytes from 8.8.8.8: icmp_seq=1 ttl=116 time=10.0 ms
+        #|64 bytes from 8.8.8.8: icmp_seq=2 ttl=116 time=20.0 ms
+        #|64 bytes from 8.8.8.8: icmp_seq=3 ttl=116 time=30.0 ms
       End
 
       When call summarize_pings
@@ -21,8 +20,8 @@ Describe 'lib/summarize_pings.sh'
 
     It 'detects packet loss'
       Data
-        Request timeout for icmp_seq 1
-        64 bytes from 8.8.8.8: icmp_seq=2 ttl=116 time=10.0 ms
+        #|Request timeout for icmp_seq 1
+        #|64 bytes from 8.8.8.8: icmp_seq=2 ttl=116 time=10.0 ms
       End
 
       When call summarize_pings

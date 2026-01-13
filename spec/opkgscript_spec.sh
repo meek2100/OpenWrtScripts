@@ -11,19 +11,21 @@ Describe 'opkgscript.sh'
     The output should include "Usage:"
   End
 
-  It 'generates an install script from a list'
+  Context 'generating script'
     setup() {
       echo "missing_package" > "$SHELLSPEC_TMPBASE/installed_list"
     }
     Before 'setup'
 
-    Mock opkg
-      if [ "$1" = "status" ]; then exit 1; fi
-      if [ "$1" = "info" ]; then echo "Depends: libc"; fi
-      exit 0
-    End
+    It 'generates an install script from a list'
+      Mock opkg
+        if [ "$1" = "status" ]; then exit 1; fi
+        if [ "$1" = "info" ]; then echo "Depends: libc"; fi
+        exit 0
+      End
 
-    When run script ./opkgscript.sh script "$SHELLSPEC_TMPBASE/installed_list"
-    The output should include "opkg install missing_package"
+      When run script ./opkgscript.sh script "$SHELLSPEC_TMPBASE/installed_list"
+      The output should include "opkg install missing_package"
+    End
   End
 End
