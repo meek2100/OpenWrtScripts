@@ -22,30 +22,7 @@ repos:
       - id: check-case-conflict
         name: Check Filename Case Conflicts
 
-  # 2. Shell Formatting (shfmt)
-  - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.12.0-2
-    hooks:
-      - id: shfmt
-        name: Format Shell Scripts (shfmt)
-        # -ln posix : Enforce POSIX/ash syntax (CRITICAL for OpenWrt)
-        # -i 2      : Indent with 2 spaces
-        # -ci       : Indent switch cases
-        # -sr       : Redirect operators will be followed by a space
-        # -s        : Simplify the code
-        args: ["-ln", "posix", "-i", "2", "-ci", "-sr", "-s"]
-
-  # 3. Shell Linting (ShellCheck)
-  - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
-    hooks:
-      - id: shellcheck
-        name: Lint Shell Scripts (ShellCheck)
-        files: \.(sh|bats|bash)$
-        # Enforce POSIX 'sh' compliance
-        args: ["--shell", "sh"]
-
-  # 4. Markdown Formatting (mdformat)
+  # 2. Markdown Formatting (mdformat)
   #  - Wraps text at 80 chars
   #  - Uses GitHub Flavored Markdown (gfm)
   #  - No external config file needed
@@ -59,3 +36,26 @@ repos:
           - mdformat-toc
         # Inline config: wrap at 80 cols, number lists
         args: ["--wrap", "80", "--number"]
+
+  # 3. Shell Formatting (shfmt)
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2
+    hooks:
+      - id: shfmt
+        name: Format Shell Scripts (shfmt)
+        # -ln posix : Enforce POSIX/ash syntax (CRITICAL for OpenWrt)
+        # -i 2      : Indent with 2 spaces
+        # -ci       : Indent switch cases
+        # -sr       : Redirect operators will be followed by a space
+        # -s        : Simplify the code
+        args: ["-ln", "posix", "-i", "2", "-ci", "-sr", "-s"]
+
+  # 4. Shell Linting (ShellCheck)
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1
+    hooks:
+      - id: shellcheck
+        name: Lint Shell Scripts (ShellCheck)
+        files: \.(sh|bats|bash)$
+        # Enforce POSIX 'sh' compliance
+        args: ["--shell", "sh"]
