@@ -2,7 +2,6 @@
 # shellcheck disable=SC2317
 
 Describe 'print-router-label.sh'
-  # Mock the file system reads
   Mock cat
     case "$1" in
       */sysinfo/model) echo "Linksys E8450 (Mocked)";;
@@ -10,21 +9,19 @@ Describe 'print-router-label.sh'
     esac
   End
 
-  # Mock the configuration system
   Mock uci
-    # Handle flags like -q by using wildcards
+    # Use || true to prevent 'broken pipe' errors if the script stops reading early
     case "$*" in
-      *"get system.@system[0].hostname") echo "MyRouter";;
-      *"get network.lan.ipaddr") echo "192.168.1.1";;
-      *"get dhcp.@dnsmasq[0].domain") echo "lan";;
-      *"show wireless") echo "wireless.default_radio0=wifi-iface";;
-      *"get wireless.default_radio0.ssid") echo "MyWifi";;
-      *"get wireless.default_radio0.key") echo "secret123";;
-      *) echo "";; # Default empty
+      *"get system.@system[0].hostname") echo "MyRouter" || true ;;
+      *"get network.lan.ipaddr") echo "192.168.1.1" || true ;;
+      *"get dhcp.@dnsmasq[0].domain") echo "lan" || true ;;
+      *"show wireless") echo "wireless.default_radio0=wifi-iface" || true ;;
+      *"get wireless.default_radio0.ssid") echo "MyWifi" || true ;;
+      *"get wireless.default_radio0.key") echo "secret123" || true ;;
+      *) echo "" || true ;;
     esac
   End
 
-  # Mock basic tools
   Mock date
     echo "2023-01-01"
   End
