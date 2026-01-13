@@ -3,7 +3,7 @@
 
 Describe 'opkgscript.sh'
   Mock opkg
-    return 0
+    exit 0
   End
 
   It 'displays help when no command is provided'
@@ -18,8 +18,9 @@ Describe 'opkgscript.sh'
     Before 'setup'
 
     Mock opkg
-      if [ "$1" = "status" ]; then return 1; fi
+      if [ "$1" = "status" ]; then exit 1; fi
       if [ "$1" = "info" ]; then echo "Depends: libc"; fi
+      exit 0
     End
 
     When run script ./opkgscript.sh script "$SHELLSPEC_TMPBASE/installed_list"

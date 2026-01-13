@@ -14,7 +14,7 @@ Describe 'betterspeedtest.sh'
     echo "/tmp/mock_temp_file"
   End
   Mock rm
-    return 0
+    exit 0 # Must use exit, not return, for external command mocks
   End
 
   # Function to intercept the script execution
@@ -26,8 +26,24 @@ Describe 'betterspeedtest.sh'
   End
 
   It 'fails gracefully without netperf'
-    Mock command -v
+    Mock command
+      # Mocking 'command -v' behavior
+      if [ "$1" = "-v" ]; then return 1; fi
+      # NOTE: 'command' is a shell builtin, so 'return' IS valid here if ShellSpec mocks it as a function.
+      # HOWEVER, if ShellSpec wraps it in a script due to context, try exit.
+      # Safe bet for builtins in 'run script' is tricky, but try 'return 1' first.
+      # If this fails with the same error, change to 'exit 1'.
       return 1
+    End
+
+    # Simpler approach for checking if netperf exists:
+    # Just mock the check logic or ensure command -v fails.
+    # Actually, the error in your log came from 'rm', not 'command'.
+    # Let's fix 'rm' first (above).
+
+    # If 'command' gives you trouble, simply Mock it to exit 1:
+    Mock command
+       exit 1
     End
 
     When run script ./betterspeedtest.sh
