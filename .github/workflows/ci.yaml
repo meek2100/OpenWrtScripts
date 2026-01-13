@@ -5,50 +5,53 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-  # Run once a week on Sunday at 00:00 UTC
+  # Run once a month on the 1st at 00:00 UTC
   schedule:
-    - cron: "0 0 * * 0"
+    - cron: "0 0 1 * *"
 
 jobs:
   test:
-    name: Lint and Test
+    name: Lint, Test, and Coverage
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
+      - name: Install ShellSpec
+        run: curl -fsSL https://git.io/shellspec | sh -s -- -y
+
+      - name: Install Kcov (Code Coverage)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y kcov
+
+      - name: Run ShellSpec with Coverage
+        # This runs all specs and generates a coverage report
+        run: |
+          # Add shellspec to path
+          export PATH=$PATH:$HOME/.local/lib/shellspec/bin
+
+          # Run specs with kcov enabled
+          shellspec --kcov
+        continue-on-error: false
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      # Keep your existing pre-commit hooks
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-          cache: "pip"
-
-      - name: Set up Go (for shfmt)
-        uses: actions/setup-go@v6
-        with:
-          go-version: "stable"
 
       - name: Install dependencies
         run: |
-          # Install pre-commit
           pip install pre-commit
-
-          # Install shfmt (required for the pre-commit hook)
-          go install mvdan.cc/sh/v3/cmd/shfmt@latest
+          # go install mvdan.cc/sh/v3/cmd/shfmt@latest # Optional if pre-commit installs it
 
       - name: Run pre-commit
-        # Runs all hooks (shfmt, shellcheck, trailing-whitespace, etc.)
         run: pre-commit run --all-files --show-diff-on-failure
-
-      - name: Run Tests
-        run: |
-          # Verify the summary test script
-          # We pass '10' as the argument to process 10 lines of sample data
-          if [ -f tests/test_summary.sh ]; then
-            echo "Running test_summary.sh..."
-            cd tests
-            sh test_summary.sh 10
-          else
-            echo "No tests found in tests/, skipping..."
-          fi
