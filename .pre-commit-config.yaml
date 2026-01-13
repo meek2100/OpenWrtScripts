@@ -28,11 +28,12 @@ repos:
     hooks:
       - id: shfmt
         name: Format Shell Scripts (shfmt)
-        # -ln posix : Enforce POSIX/ash syntax
+        # -ln posix : Enforce POSIX/ash syntax (CRITICAL for OpenWrt)
         # -i 2      : Indent with 2 spaces
         # -ci       : Indent switch cases
         # -sr       : Redirect operators will be followed by a space
-        args: ["-ln", "posix", "-i", "2", "-ci", "-sr"]
+        # -s        : Simplify the code
+        args: ["-ln", "posix", "-i", "2", "-ci", "-sr", "-s"]
 
   # 3. Shell Linting (ShellCheck)
   - repo: https://github.com/shellcheck-py/shellcheck-py
