@@ -127,7 +127,7 @@ no_passphrase() {
 # "n" and "number" Number of simultaneous upload or download sessions (default: 4 sessions;
 #       4 sessions chosen to match default of RRUL test)
 
-if [ "${0##*/}" = "netperfrunner.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+if [ "${0##*/}" != "shellspec" ]; then
 
 # set an initial values for defaults
 TESTHOST="netperf.bufferbloat.net"

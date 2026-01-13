@@ -117,7 +117,7 @@ print_router_label() {
   echo ""
 }
 
-if [ "${0##*/}" = "config-spare-router.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+if [ "${0##*/}" != "shellspec" ]; then
 
 # === CONFIGURATION PARAMETERS ===
 # Set the variables to be used for configuration

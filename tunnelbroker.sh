@@ -14,7 +14,7 @@
 #    Note: The User_Name is the name you used to create the account
 #    Note: Find the Update_Key on the Advanced Tab of the Tunnel Details page.
 
-if [ "${0##*/}" = "tunnelbroker.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+if [ "${0##*/}" != "shellspec" ]; then
 
 User_Name=abdcef
 Tunnel_ID=123456

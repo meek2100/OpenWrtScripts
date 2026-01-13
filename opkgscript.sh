@@ -82,7 +82,7 @@ the call to opkg to write the list of installed packages, though.
 "
 }
 
-if [ "${0##*/}" = "opkgscript.sh" ] || [ "${0##*/}" = "shellspec" ]; then
+if [ "${0##*/}" != "shellspec" ]; then
 
 trap cleanup HUP INT TERM EXIT
 
