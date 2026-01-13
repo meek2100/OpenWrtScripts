@@ -2,10 +2,6 @@
 # shellcheck disable=SC2317
 
 Describe 'getstats.sh'
-  # We must intercept the file writing.
-  # Since the script writes to /tmp/openwrtstats.txt, we can check that file.
-
-  # Mock the heavy lifters to avoid actual system calls
   Mock uname
     echo "Linux OpenWrt"
   End
@@ -19,11 +15,6 @@ Describe 'getstats.sh'
   End
 
   It 'collects stats and writes to the output file'
-    # We use a custom temp file for the test
-    Parameters
-      "/tmp/test_stats_output.txt"
-    End
-
     When run script ./getstats.sh
     The status should be success
 
