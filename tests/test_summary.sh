@@ -4,6 +4,7 @@
 #
 
 # include the summarize_pings() function from the library
+# shellcheck source=/dev/null
 . "../lib/summarize_pings.sh"
 
 PINGFILE=$(mktemp /tmp/measurepings.XXXXXX) || exit 1

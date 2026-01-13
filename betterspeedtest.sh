@@ -41,7 +41,8 @@ summarize_pings() {
 
   grep "time" < "$1" | cat | \
     sed 's/^.*time=\([^ ]*\) ms/\1/'| \
-    # tee >&2 | \
+
+    # tee >&2 |
     sort -n | \
     awk 'BEGIN {numdrops=0; numrows=0} \
     { \

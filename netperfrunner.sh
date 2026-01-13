@@ -47,7 +47,7 @@ summarize_pings() {
 
   grep "time" < "$1" | cat | \
     sed 's/^.*time=\([^ ]*\) ms/\1/'| \
-    # tee >&2 | \
+    # tee >&2 |
     sort -n | \
     awk 'BEGIN {numdrops=0; numrows=0} \
     { \
@@ -272,8 +272,8 @@ fi
 # sum up all the values (one line per netperf test) from $DLFILE and $ULFILE
 # then summarize the ping stat's
 echo ""
-echo " Download: " $(awk '{s+=$1} END {print s}' "$DLFILE") Mbps
-echo "   Upload: " $(awk '{s+=$1} END {print s}' "$ULFILE") Mbps
+echo " Download: $(awk '{s+=$1} END {print s}' "$DLFILE") Mbps"
+echo "   Upload: $(awk '{s+=$1} END {print s}' "$ULFILE") Mbps"
 summarize_pings "$PINGFILE"
 
 clean_up

@@ -32,9 +32,11 @@ out_fqn=/tmp/openwrtstats.txt
 # Redirect both standard out and error out to that file.
 
 display_command() {
-  echo "[ $1 ]"  >> "$out_fqn"
-  eval "$1"      >> "$out_fqn" 2>> "$out_fqn"
-  printf "\n"    >> "$out_fqn"
+  {
+    echo "[ $1 ]"
+    eval "$1" 2>&1
+    printf "\n"
+  } >> "$out_fqn"
 }
 
 # ------- display_user_packages() ---------
