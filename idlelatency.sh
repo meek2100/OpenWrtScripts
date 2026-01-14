@@ -125,59 +125,61 @@ start_pings() {
 # “t” and “time” Time to run the test in each direction (default: 60 seconds)
 # “p” and “ping” Host to ping for latency measurements (default: gstatic.com)
 
+run_idlelatency() {
+    # set an initial values for defaults
+    TESTDUR="60"
+
+    PING4=ping
+    command -v ping4 > /dev/null 2>&1 && PING4=ping4
+    PING6=ping6
+
+    PINGHOST="gstatic.com"
+    TESTPROTO="-4"
+
+    # read the options
+
+    # extract options and their arguments into variables.
+    while [ $# -gt 0 ]
+    do
+    case "$1" in
+        -4|-6) TESTPROTO=$1 ; shift 1 ;;
+        -t|--time)
+        case "$2" in
+            "") echo "Missing duration" ; exit 1 ;;
+            *) TESTDUR=$2 ; shift 2 ;;
+        esac ;;
+        -p|--ping)
+        case "$2" in
+            "") echo "Missing ping host" ; exit 1 ;;
+            *) PINGHOST=$2 ; shift 2 ;;
+        esac ;;
+        --) shift ; break ;;
+        *) echo "Usage: sh idlelatency.sh [-4 -6] [ -t duration ] [ -p host-to-ping ]" ; exit 1 ;;
+    esac
+    done
+
+    # Start the main test
+
+    if [ "$TESTPROTO" -eq "-4" ]
+    then
+    PROTO="ipv4"
+    else
+    # shellcheck disable=SC2034
+    PROTO="ipv6"
+    fi
+    DATE=$(date "+%Y-%m-%d %H:%M:%S")
+
+    # Catch a Ctl-C and stop the pinging and the print_dots
+    trap kill_pings_and_dots_and_exit HUP INT TERM
+
+    echo "THIS SCRIPT IS NO LONGER MAINTAINED."
+    echo "Use the --idle option with the betterspeedtest.sh script"
+    echo "$DATE Testing idle line while pinging $PINGHOST ($TESTDUR seconds)"
+    start_pings
+    sleep "$TESTDUR"
+    summarize_pings "$PINGFILE"
+}
+
 if [ "${0##*/}" != "shellspec" ]; then
-
-# set an initial values for defaults
-TESTDUR="60"
-
-PING4=ping
-command -v ping4 > /dev/null 2>&1 && PING4=ping4
-PING6=ping6
-
-PINGHOST="gstatic.com"
-TESTPROTO="-4"
-
-# read the options
-
-# extract options and their arguments into variables.
-while [ $# -gt 0 ]
-do
-  case "$1" in
-    -4|-6) TESTPROTO=$1 ; shift 1 ;;
-    -t|--time)
-      case "$2" in
-        "") echo "Missing duration" ; exit 1 ;;
-        *) TESTDUR=$2 ; shift 2 ;;
-      esac ;;
-    -p|--ping)
-      case "$2" in
-        "") echo "Missing ping host" ; exit 1 ;;
-        *) PINGHOST=$2 ; shift 2 ;;
-      esac ;;
-    --) shift ; break ;;
-    *) echo "Usage: sh idlelatency.sh [-4 -6] [ -t duration ] [ -p host-to-ping ]" ; exit 1 ;;
-  esac
-done
-
-# Start the main test
-
-if [ "$TESTPROTO" -eq "-4" ]
-then
-  PROTO="ipv4"
-else
-  # shellcheck disable=SC2034
-  PROTO="ipv6"
-fi
-DATE=$(date "+%Y-%m-%d %H:%M:%S")
-
-# Catch a Ctl-C and stop the pinging and the print_dots
-trap kill_pings_and_dots_and_exit HUP INT TERM
-
-echo "THIS SCRIPT IS NO LONGER MAINTAINED."
-echo "Use the --idle option with the betterspeedtest.sh script"
-echo "$DATE Testing idle line while pinging $PINGHOST ($TESTDUR seconds)"
-start_pings
-sleep "$TESTDUR"
-summarize_pings "$PINGFILE"
-
+  run_idlelatency "$@"
 fi

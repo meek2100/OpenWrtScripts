@@ -117,97 +117,6 @@ no_passphrase() {
   exit 1
 }
 
-# ------- Start of the main routine --------
-
-# Usage: sh betterspeedtest.sh [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ]
-
-# “H” and “host” DNS or IP address of the netperf server host (default: netperf.bufferbloat.net)
-# “t” and “time” Time to run the test in each direction (default: 60 seconds)
-# “p” and “ping” Host to ping for latency measurements (default: gstatic.com)
-# "n" and "number" Number of simultaneous upload or download sessions (default: 4 sessions;
-#       4 sessions chosen to match default of RRUL test)
-
-if [ "${0##*/}" != "shellspec" ]; then
-
-# set an initial values for defaults
-TESTHOST="netperf.bufferbloat.net"
-TESTDUR="60"
-
-PING4=ping
-command -v ping4 > /dev/null 2>&1 && PING4=ping4
-PING6=ping6
-
-PINGHOST="gstatic.com"
-MAXSESSIONS=4
-TESTPROTO=-4
-
-# Create temp files for netperf up/download results
-ULFILE=$(mktemp /tmp/netperfUL.XXXXXX) || exit 1
-DLFILE=$(mktemp /tmp/netperfDL.XXXXXX) || exit 1
-PINGFILE=$(mktemp /tmp/measurepings.XXXXXX) || exit 1
-ERRFILE=$(mktemp /tmp/netperfErr.XXXXXX) || exit 1
-
-# echo $ULFILE $DLFILE $PINGFILE
-
-# read the options
-
-# extract options and their arguments into variables.
-while [ $# -gt 0 ]
-do
-  case "$1" in
-    -4|-6) TESTPROTO=$1; shift 1 ;;
-    -H|--host)
-      case "$2" in
-        "") echo "Missing hostname" ; exit 1 ;;
-        *) TESTHOST=$2 ; shift 2 ;;
-      esac ;;
-    -t|--time)
-      case "$2" in
-        "") echo "Missing duration" ; exit 1 ;;
-        *) TESTDUR=$2 ; shift 2 ;;
-      esac ;;
-    -p|--ping)
-      case "$2" in
-        "") echo "Missing ping host" ; exit 1 ;;
-        *) PINGHOST=$2 ; shift 2 ;;
-      esac ;;
-    -n|--number)
-      case "$2" in
-        "") echo "Missing number of simultaneous sessions" ; exit 1 ;;
-        *) MAXSESSIONS=$2 ; shift 2 ;;
-      esac ;;
-    -Z)
-      case "$2" in
-        "") no_passphrase ;;
-        *) PASSPHRASEOPTION="-Z $2" ; shift 2 ;;
-      esac ;;
-    --) shift ; break ;;
-    *) echo "Usage: sh Netperfrunner.sh -Z passphrase [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -n simultaneous-streams ]" ; exit 1 ;;
-  esac
-done
-
-# Start main test
-
-# Check to see if netperf is installed and exit if not
-if ! command -v netperf >/dev/null 2>&1; then
-  echo ""
-  echo "Error: netperf is not installed or not in PATH" >&2
-  exit 1
-fi
-
-if [ "$TESTPROTO" -eq "-4" ]
-then
-  PROTO="ipv4"
-else
-  PROTO="ipv6"
-fi
-DATE=$(date "+%Y-%m-%d %H:%M:%S")
-echo "$DATE Testing $TESTHOST ($PROTO) with $MAXSESSIONS streams down and up while pinging $PINGHOST. Takes about $TESTDUR seconds."
-# echo "It downloads four files, and concurrently uploads four files for maximum stress."
-# echo "It also pings a well-connected host, and prints a summary of the latency results."
-# echo "This test is part of the CeroWrt project. To learn more, visit:"
-# echo "  http://bufferbloat.net/projects/cerowrt/"
-
 # ------------ start_pings() ----------------
 # Start printing dots, then start a ping process, saving the results to a PINGFILE
 
@@ -233,51 +142,145 @@ start_pings() {
 
 }
 
-start_pings
+# ------- Start of the main routine --------
 
-# Start $MAXSESSIONS upload datastreams from netperf client to the netperf server
-# netperf writes the sole output value (in Mbps) to stdout when completed
-for i in $( seq "$MAXSESSIONS" )
-do
-  netperf "$TESTPROTO" -H "$TESTHOST" -t TCP_STREAM -l "$TESTDUR" -v 0 -P 0 "$PASSPHRASEOPTION" >> "$ULFILE" 2>> "$ERRFILE"&
-  # echo "Starting upload #$i $!"
-done
+# Usage: sh betterspeedtest.sh [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ]
 
-# Start $MAXSESSIONS download datastreams from netperf server to the client
-for i in $( seq "$MAXSESSIONS" )
-do
-  netperf "$TESTPROTO" -H "$TESTHOST" -t TCP_MAERTS -l "$TESTDUR" -v 0 -P 0 "$PASSPHRASEOPTION" >> "$DLFILE" 2>> "$ERRFILE"&
-  # echo "Starting download #$i $!"
-done
+# “H” and “host” DNS or IP address of the netperf server host (default: netperf.bufferbloat.net)
+# “t” and “time” Time to run the test in each direction (default: 60 seconds)
+# “p” and “ping” Host to ping for latency measurements (default: gstatic.com)
+# "n" and "number" Number of simultaneous upload or download sessions (default: 4 sessions;
+#       4 sessions chosen to match default of RRUL test)
 
-# Wait until each of the background netperf processes completes
-# echo "Process is $$"
-# echo `pgrep -P $$ netperf `
+run_netperfrunner() {
 
-for i in $(pgrep -P $$ netperf)		# get a list of PIDs for child processes named 'netperf'
-do
-  # echo "Waiting for $i"
-  wait "$i"
-done
+    # set an initial values for defaults
+    TESTHOST="netperf.bufferbloat.net"
+    TESTDUR="60"
 
-# Check the length of the error file. If it's > 0, then there were errors
-file_size=$(wc -c < "$ERRFILE")
-if [ "$file_size" -gt 0 ]; then
-  clean_up                    # stop the machinery
-  no_passphrase               # print the error and exit
-fi
+    PING4=ping
+    command -v ping4 > /dev/null 2>&1 && PING4=ping4
+    PING6=ping6
 
-# # Stop the pings after the netperf's are all done
-# kill -9 $ping_pid
-# wait $ping_pid 2>/dev/null
+    PINGHOST="gstatic.com"
+    MAXSESSIONS=4
+    TESTPROTO=-4
 
-# sum up all the values (one line per netperf test) from $DLFILE and $ULFILE
-# then summarize the ping stat's
-echo ""
-echo " Download: $(awk '{s+=$1} END {print s}' "$DLFILE") Mbps"
-echo "   Upload: $(awk '{s+=$1} END {print s}' "$ULFILE") Mbps"
-summarize_pings "$PINGFILE"
+    # Create temp files for netperf up/download results
+    ULFILE=$(mktemp /tmp/netperfUL.XXXXXX) || exit 1
+    DLFILE=$(mktemp /tmp/netperfDL.XXXXXX) || exit 1
+    PINGFILE=$(mktemp /tmp/measurepings.XXXXXX) || exit 1
+    ERRFILE=$(mktemp /tmp/netperfErr.XXXXXX) || exit 1
 
-clean_up
+    # echo $ULFILE $DLFILE $PINGFILE
 
+    # read the options
+
+    # extract options and their arguments into variables.
+    while [ $# -gt 0 ]
+    do
+    case "$1" in
+        -4|-6) TESTPROTO=$1; shift 1 ;;
+        -H|--host)
+        case "$2" in
+            "") echo "Missing hostname" ; exit 1 ;;
+            *) TESTHOST=$2 ; shift 2 ;;
+        esac ;;
+        -t|--time)
+        case "$2" in
+            "") echo "Missing duration" ; exit 1 ;;
+            *) TESTDUR=$2 ; shift 2 ;;
+        esac ;;
+        -p|--ping)
+        case "$2" in
+            "") echo "Missing ping host" ; exit 1 ;;
+            *) PINGHOST=$2 ; shift 2 ;;
+        esac ;;
+        -n|--number)
+        case "$2" in
+            "") echo "Missing number of simultaneous sessions" ; exit 1 ;;
+            *) MAXSESSIONS=$2 ; shift 2 ;;
+        esac ;;
+        -Z)
+        case "$2" in
+            "") no_passphrase ;;
+            *) PASSPHRASEOPTION="-Z $2" ; shift 2 ;;
+        esac ;;
+        --) shift ; break ;;
+        *) echo "Usage: sh Netperfrunner.sh -Z passphrase [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -n simultaneous-streams ]" ; exit 1 ;;
+    esac
+    done
+
+    # Start main test
+
+    # Check to see if netperf is installed and exit if not
+    if ! command -v netperf >/dev/null 2>&1; then
+    echo ""
+    echo "Error: netperf is not installed or not in PATH" >&2
+    exit 1
+    fi
+
+    if [ "$TESTPROTO" -eq "-4" ]
+    then
+    PROTO="ipv4"
+    else
+    PROTO="ipv6"
+    fi
+    DATE=$(date "+%Y-%m-%d %H:%M:%S")
+    echo "$DATE Testing $TESTHOST ($PROTO) with $MAXSESSIONS streams down and up while pinging $PINGHOST. Takes about $TESTDUR seconds."
+    # echo "It downloads four files, and concurrently uploads four files for maximum stress."
+    # echo "It also pings a well-connected host, and prints a summary of the latency results."
+    # echo "This test is part of the CeroWrt project. To learn more, visit:"
+    # echo "  http://bufferbloat.net/projects/cerowrt/"
+
+    start_pings
+
+    # Start $MAXSESSIONS upload datastreams from netperf client to the netperf server
+    # netperf writes the sole output value (in Mbps) to stdout when completed
+    for i in $( seq "$MAXSESSIONS" )
+    do
+    netperf "$TESTPROTO" -H "$TESTHOST" -t TCP_STREAM -l "$TESTDUR" -v 0 -P 0 "$PASSPHRASEOPTION" >> "$ULFILE" 2>> "$ERRFILE"&
+    # echo "Starting upload #$i $!"
+    done
+
+    # Start $MAXSESSIONS download datastreams from netperf server to the client
+    for i in $( seq "$MAXSESSIONS" )
+    do
+    netperf "$TESTPROTO" -H "$TESTHOST" -t TCP_MAERTS -l "$TESTDUR" -v 0 -P 0 "$PASSPHRASEOPTION" >> "$DLFILE" 2>> "$ERRFILE"&
+    # echo "Starting download #$i $!"
+    done
+
+    # Wait until each of the background netperf processes completes
+    # echo "Process is $$"
+    # echo `pgrep -P $$ netperf `
+
+    for i in $(pgrep -P $$ netperf)		# get a list of PIDs for child processes named 'netperf'
+    do
+    # echo "Waiting for $i"
+    wait "$i"
+    done
+
+    # Check the length of the error file. If it's > 0, then there were errors
+    file_size=$(wc -c < "$ERRFILE")
+    if [ "$file_size" -gt 0 ]; then
+    clean_up                    # stop the machinery
+    no_passphrase               # print the error and exit
+    fi
+
+    # # Stop the pings after the netperf's are all done
+    # kill -9 $ping_pid
+    # wait $ping_pid 2>/dev/null
+
+    # sum up all the values (one line per netperf test) from $DLFILE and $ULFILE
+    # then summarize the ping stat's
+    echo ""
+    echo " Download: $(awk '{s+=$1} END {print s}' "$DLFILE") Mbps"
+    echo "   Upload: $(awk '{s+=$1} END {print s}' "$ULFILE") Mbps"
+    summarize_pings "$PINGFILE"
+
+    clean_up
+}
+
+if [ "${0##*/}" != "shellspec" ]; then
+  run_netperfrunner "$@"
 fi

@@ -82,130 +82,132 @@ the call to opkg to write the list of installed packages, though.
 "
 }
 
-if [ "${0##*/}" != "shellspec" ]; then
+run_opkgscript() {
+    trap cleanup HUP INT TERM EXIT
 
-trap cleanup HUP INT TERM EXIT
-
-# parse command line options
-while getopts "htuvw" OPTS; do
-    case $OPTS in
-        t )
-            OPKGOPT="$OPKGOPT --noaction";;
-        u )
-            UPDATE=true;;
-        v )
-            VERBOSE=true;;
-        [h\?*] )
-            echo_usage
-            exit 0;;
-    esac
-done
-shift $((OPTIND - 1))
-
-# Set the command
-COMMAND=$1
-
-# Set name of the package list
-if [ -n "$2" ]; then
-    PCKGLIST="$2"
-fi
-
-#
-# Help
-#
-
-if [ -z "$COMMAND" ]; then
-    echo "No command specified."
-    echo ""
-    COMMAND="help"
-fi
-
-if [ "$COMMAND" = "help" ]; then
-    echo_usage
-    exit 0
-fi
-
-#
-# Write
-#
-
-if [ "$COMMAND" = "write" ] ; then
-    if $VERBOSE; then
-        echo "Saving package list to $PCKGLIST"
-    fi
-    # NOTE: option --noaction not valid for list-installed
-    opkg list-installed > "$PCKGLIST"
-    exit 0
-fi
-
-#
-# Update
-#
-
-if $UPDATE; then
-    opkg "$OPKGOPT" update
-fi
-
-#
-# Check
-#
-
-if [ "$COMMAND" = "install" ] || [ "$COMMAND" = "script" ]; then
-    # detect uninstalled packages
-    if $VERBOSE && [ "$COMMAND" != "script" ]; then
-        echo "Checking packages... "
-    fi
-    cat "$PCKGLIST" | while read -r PACKAGE _ _; do
-        # opkg status is much faster than opkg info
-        # it only returns status of installed packages
-        #if ! opkg status $PACKAGE | grep -q "^Status:.* installed"; then
-        if [ -z "$(opkg status "$PACKAGE")" ]; then
-            # collect uninstalled packages
-            echo "$PACKAGE" >> "$INSTLIST"
-            # collect prerequisites
-            opkg info "$PACKAGE" |
-            awk "/^Depends: / {
-                                sub(\"Depends: \", \"\");   \
-                                gsub(\", \", \"\\n\");      \
-                                print >> \"$PREQLIST\";      \
-                              }"
-        fi
+    # parse command line options
+    while getopts "htuvw" OPTS; do
+        case $OPTS in
+            t )
+                OPKGOPT="$OPKGOPT --noaction";;
+            u )
+                UPDATE=true;;
+            v )
+                VERBOSE=true;;
+            [h\?*] )
+                echo_usage
+                exit 0;;
+        esac
     done
-fi
+    shift $((OPTIND - 1))
 
-#
-# Install or script
-#
+    # Set the command
+    COMMAND=$1
 
-if [ "$COMMAND" = "install" ]; then
-    # install packages
-    while read -r PACKAGE; do
-        if grep -q "^$PACKAGE\$" "$PREQLIST"; then
-            # prerequisite package, will be installed automatically
-            if $VERBOSE; then
-                echo "$PACKAGE installed automatically"
+    # Set name of the package list
+    if [ -n "$2" ]; then
+        PCKGLIST="$2"
+    fi
+
+    #
+    # Help
+    #
+
+    if [ -z "$COMMAND" ]; then
+        echo "No command specified."
+        echo ""
+        COMMAND="help"
+    fi
+
+    if [ "$COMMAND" = "help" ]; then
+        echo_usage
+        exit 0
+    fi
+
+    #
+    # Write
+    #
+
+    if [ "$COMMAND" = "write" ] ; then
+        if $VERBOSE; then
+            echo "Saving package list to $PCKGLIST"
+        fi
+        # NOTE: option --noaction not valid for list-installed
+        opkg list-installed > "$PCKGLIST"
+        exit 0
+    fi
+
+    #
+    # Update
+    #
+
+    if $UPDATE; then
+        opkg "$OPKGOPT" update
+    fi
+
+    #
+    # Check
+    #
+
+    if [ "$COMMAND" = "install" ] || [ "$COMMAND" = "script" ]; then
+        # detect uninstalled packages
+        if $VERBOSE && [ "$COMMAND" != "script" ]; then
+            echo "Checking packages... "
+        fi
+        cat "$PCKGLIST" | while read -r PACKAGE _ _; do
+            # opkg status is much faster than opkg info
+            # it only returns status of installed packages
+            #if ! opkg status $PACKAGE | grep -q "^Status:.* installed"; then
+            if [ -z "$(opkg status "$PACKAGE")" ]; then
+                # collect uninstalled packages
+                echo "$PACKAGE" >> "$INSTLIST"
+                # collect prerequisites
+                opkg info "$PACKAGE" |
+                awk "/^Depends: / {
+                                    sub(\"Depends: \", \"\");   \
+                                    gsub(\", \", \"\\n\");      \
+                                    print >> \"$PREQLIST\";      \
+                                  }"
             fi
-        else
-            # install package
-            opkg "$OPKGOPT" install "$PACKAGE"
-        fi
-    done < "$INSTLIST"
-elif [ "$COMMAND" = "script" ]; then
-    # output install script
-    echo "#!/bin/sh"
-    while read -r PACKAGE; do
-        if ! grep -q "^$PACKAGE\$" "$PREQLIST"; then
-            echo "opkg install $PACKAGE"
-        fi
-    done < "$INSTLIST"
-else
-    echo "Unknown command '$COMMAND'."
-    echo ""
-    echo_usage
-    exit 1
-fi
+        done
+    fi
 
-# clean up and exit
-exit 0
+    #
+    # Install or script
+    #
 
+    if [ "$COMMAND" = "install" ]; then
+        # install packages
+        while read -r PACKAGE; do
+            if grep -q "^$PACKAGE\$" "$PREQLIST"; then
+                # prerequisite package, will be installed automatically
+                if $VERBOSE; then
+                    echo "$PACKAGE installed automatically"
+                fi
+            else
+                # install package
+                opkg "$OPKGOPT" install "$PACKAGE"
+            fi
+        done < "$INSTLIST"
+    elif [ "$COMMAND" = "script" ]; then
+        # output install script
+        echo "#!/bin/sh"
+        while read -r PACKAGE; do
+            if ! grep -q "^$PACKAGE\$" "$PREQLIST"; then
+                echo "opkg install $PACKAGE"
+            fi
+        done < "$INSTLIST"
+    else
+        echo "Unknown command '$COMMAND'."
+        echo ""
+        echo_usage
+        exit 1
+    fi
+
+    # clean up and exit
+    exit 0
+}
+
+if [ "${0##*/}" != "shellspec" ]; then
+    run_opkgscript "$@"
 fi
