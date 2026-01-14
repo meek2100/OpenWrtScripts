@@ -377,6 +377,6 @@ EOF
     # /etc/init.d/avahi-daemon enable
 }
 
-if [ "${0##*/}" != "shellspec" ]; then
+if [ "${0##*/}" != "shellspec" ] && [ -z "${UNIT_TESTING:-}" ]; then
     run_config_spare_router
 fi

@@ -25,15 +25,15 @@ Describe 'config-openwrt.sh'
   End
 
   # Mock service calls
-  Mock /etc/init.d/snmpd
-    exit 0
-  End
-  Mock /etc/init.d/avahi-daemon
-    exit 0
-  End
-  Mock /etc/init.d/sqm
-    exit 0
-  End
+  # Mock /etc/init.d/snmpd
+  #   exit 0
+  # End
+  # Mock /etc/init.d/avahi-daemon
+  #   exit 0
+  # End
+  # Mock /etc/init.d/sqm
+  #   exit 0
+  # End
 
   It 'runs the configuration template successfully'
     When call run_config_openwrt
