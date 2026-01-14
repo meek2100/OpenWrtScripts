@@ -6,7 +6,8 @@ set -eu
 
 # 2. Add the project root to PATH so scripts can be run without './' prefix if needed
 #    and ensures mocked tools in current dir are found first if you add them.
-export PATH="$(pwd):$PATH"
+PATH="$(pwd):$PATH"
+export PATH
 
 # 3. Define the load helper (Connects Library Parts to Tests)
 load_lib() {
