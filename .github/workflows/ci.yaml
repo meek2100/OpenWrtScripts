@@ -9,9 +9,29 @@ on:
     - cron: "0 0 1 * *"
 
 jobs:
-  test:
-    name: Lint, Test, and Coverage
+  lint:
+    name: Lint (Pre-commit)
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: pip install pre-commit
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  test:
+    name: Test and Coverage
+    runs-on: ubuntu-latest
+    needs: lint
+    if: success()
 
     steps:
       - name: Checkout code
@@ -49,14 +69,3 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-
-      - name: Install dependencies
-        run: pip install pre-commit
-
-      - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure
