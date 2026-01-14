@@ -56,33 +56,33 @@ display_user_packages() {
 
 # ------- Main Routine -------
 
-if [ "${0##*/}" != "shellspec" ]; then
+run_getstats() {
 
-# Examine first argument to see if they're asking for help
-if [ "$1" = "-h" ] || [ "$1" = "--help" ]
-then
-  echo "Usage: sh $0 \"command 1 to be executed\" \"command 2\" \"command 3\" ... "
-  echo ' '
-  exit
-fi
+  # Examine first argument to see if they're asking for help
+  if [ "$1" = "-h" ] || [ "$1" = "--help" ]
+  then
+    echo "Usage: sh $0 \"command 1 to be executed\" \"command 2\" \"command 3\" ... "
+    echo ' '
+    exit
+  fi
 
 
-# Write a heading for the file
+  # Write a heading for the file
 
-echo "===== $0 at $(date) =====" > "$out_fqn"
+  echo "===== $0 at $(date) =====" > "$out_fqn"
 
-# Display four sets of commands:
-# 1. Common diagnostic commands
-# 2. Additional user-supplied commands (from the command line)
-# 3. User-installed opkg packages
-# 4. Longer/less common diagnostic output
+  # Display four sets of commands:
+  # 1. Common diagnostic commands
+  # 2. Additional user-supplied commands (from the command line)
+  # 3. User-installed opkg packages
+  # 4. Longer/less common diagnostic output
 
-# 1. Display the common diagnostic commands
-# These are read from the list delimited by "EOF"
+  # 1. Display the common diagnostic commands
+  # These are read from the list delimited by "EOF"
 
-while read -r LINE; do
-  display_command "$LINE"
-done << EOF
+  while read -r LINE; do
+    display_command "$LINE"
+  done << EOF
 cat /etc/banner
 date
 cat /etc/openwrt_release
@@ -93,34 +93,38 @@ du -sh / ; du -sh /*
 EOF
 
 
-# 2. Extract arguments from the command line and display them.
-while [ $# -gt 0 ]
-do
-  display_command "$1"
-  shift 1
-done
+  # 2. Extract arguments from the command line and display them.
+  while [ $# -gt 0 ]
+  do
+    display_command "$1"
+    shift 1
+  done
 
-# 3. Display user-installed opkg packages
-display_user_packages
+  # 3. Display user-installed opkg packages
+  display_user_packages
 
-# 4. Display the long/less frequently-needed commands
+  # 4. Display the long/less frequently-needed commands
 
-while read -r LINE; do
-  display_command "$LINE"
-done << EOF
+  while read -r LINE; do
+    display_command "$LINE"
+  done << EOF
 ifconfig
 logread
 dmesg
 EOF
 
-# End the report
-echo "===== end of $0 =====" >> "$out_fqn"
+  # End the report
+  echo "===== end of $0 =====" >> "$out_fqn"
 
 
-#cat $out_fqn
-echo "Done... Diagnostic information written to $out_fqn"
-echo " "
+  #cat $out_fqn
+  echo "Done... Diagnostic information written to $out_fqn"
+  echo " "
 
-# Now press Ctl-D, then type "sh getstats.sh"
+  # Now press Ctl-D, then type "sh getstats.sh"
 
+}
+
+if [ "${0##*/}" != "shellspec" ]; then
+  run_getstats "$@"
 fi
