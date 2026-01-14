@@ -1,38 +1,41 @@
 # OpenWrtScripts
 
+![CI Status](https://github.com/richb-hanover/OpenWrtScripts/actions/workflows/ci.yaml/badge.svg)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+
 This is a set of scripts (sometimes also called "Openscripts") that report,
-configure and measure (and improve) latency in home routers.
-These scripts work for [OpenWrt](https://openwrt.org) and include:
+configure and measure (and improve) latency in home routers. These scripts work
+for [OpenWrt](https://openwrt.org) and include:
 
-* [getstats.sh](#getstatssh) - a script to collect troubleshooting
-  information that helps to diagnose problems in the OpenWrt distribution.
+- [getstats.sh](#getstatssh) - a script to collect troubleshooting information
+  that helps to diagnose problems in the OpenWrt distribution.
 
-* [opkgscript.sh](#opkgscriptsh) - a script to save the list of
-  currently-installed packages (say, before a sysupgrade),
-  and then restore the full set of packages after the upgrade.
+- [opkgscript.sh](#opkgscriptsh) - a script to save the list of
+  currently-installed packages (say, before a sysupgrade), and then restore the
+  full set of packages after the upgrade.
 
-* [config-openwrt.sh](#config-openwrtsh) - a script to configure the
-  OpenWrt router consistently after flashing factory firmware.
+- [config-openwrt.sh](#config-openwrtsh) - a script to configure the OpenWrt
+  router consistently after flashing factory firmware.
 
-* [config-spare-router.sh](#config-spare-routersh) - Configure a
-  "spare router" to known configuration so it's easy to re-use in a new setting.
+- [config-spare-router.sh](#config-spare-routersh) - Configure a "spare router"
+  to known configuration so it's easy to re-use in a new setting.
 
-* [print-router-label.sh](#print-router-labelsh) -
-  Create a printable label showing LAN address and login credentials
-  that can be taped on the side of the router.
+- [print-router-label.sh](#print-router-labelsh) - Create a printable label
+  showing LAN address and login credentials that can be taped on the side of the
+  router.
 
-* [betterspeedtest.sh](#betterspeedtestsh) &
-  [netperfrunner.sh](#netperfrunnersh) - scripts that measure the
-  performance of your router or offer load to the network for testing.
+- [betterspeedtest.sh](#betterspeedtestsh) &
+  [netperfrunner.sh](#netperfrunnersh) - scripts that measure the performance of
+  your router or offer load to the network for testing.
 
-* [idlelatency.sh](#idlelatencysh) - a script to measure the latency of
-  an "idle line" without any additional traffic generation from the script.
+- [idlelatency.sh](#idlelatencysh) - a script to measure the latency of an "idle
+  line" without any additional traffic generation from the script.
 
-* [tunnelbroker.sh](#tunnelbrokersh) - a script to set up a
-  IPv6 6-in-4 tunnel to TunnelBroker.net.
+- [tunnelbroker.sh](#tunnelbrokersh) - a script to set up a IPv6 6-in-4 tunnel
+  to TunnelBroker.net.
 
-These scripts can be saved in the `/usr/lib/OpenWrtScripts` directory.
-The easiest way to do this is to ssh into the router and enter these commands:
+These scripts can be saved in the `/usr/lib/OpenWrtScripts` directory. The
+easiest way to do this is to ssh into the router and enter these commands:
 
 ```bash
 opkg update
@@ -41,42 +44,40 @@ cd /usr/lib
 git clone https://github.com/richb-hanover/OpenWrtScripts.git
 ```
 
-**NB:** Some of these scripts have instructions for running the script
-from `/tmp`
+**NB:** Some of these scripts have instructions for running the script from
+`/tmp`
 
 ## [getstats.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/getstats.sh)
 
-The `getstats.sh` script helps diagnose problems with OpenWrt.
-If you report a problem, it is always helpful to include the output of this script.
+The `getstats.sh` script helps diagnose problems with OpenWrt. If you report a
+problem, it is always helpful to include the output of this script.
 
-`getstats.sh` executes a built-in set of commands and writes the
-collected output to `/tmp/openwrtstats.txt`.
-The script also executes commands passed as arguments on the command line.
-It also displays a list of user-installed opkg packages -
-that is those not installed by default.
-In the example below, the output would contain results from the
-standard set of commands plus the two additional arguments:
+`getstats.sh` executes a built-in set of commands and writes the collected
+output to `/tmp/openwrtstats.txt`. The script also executes commands passed as
+arguments on the command line. It also displays a list of user-installed opkg
+packages - that is those not installed by default. In the example below, the
+output would contain results from the standard set of commands plus the two
+additional arguments:
 
 **Usage:** `sh getstats.sh "ls /usr/lib" "ls -al /etc/config"`
 
-**To install and run this script:** The script is self-contained,
-and can be placed in any directory. Read the top of the
-[getstats.sh](./getstats.sh) file for a simple procedure for using the script.
+**To install and run this script:** The script is self-contained, and can be
+placed in any directory. Read the top of the [getstats.sh](./getstats.sh) file
+for a simple procedure for using the script.
 
 **Sample output file:** See a sample output file -
 [openwrtstats.txt](./sample_output/openwrtstats.txt)
 
 ## [opkgscript.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/opkgscript.sh)
 
-_**NOTE:** This script is deprecated.
-It still works, but when upgrading to a new OpenWrt release,
-a far easier option is to use the
+_**NOTE:** This script is deprecated. It still works, but when upgrading to a
+new OpenWrt release, a far easier option is to use the
 [Attended Sysupgrade](https://openwrt.org/docs/guide-user/installation/attended.sysupgrade)
 in recent versions of OpenWrt._
 
-The `opkgscript.sh` script helps to restore the current set of packages
-after a sysupgrade or even a clean install of either LEDE or OpenWrt.
-By default, the `write` command saves the list of installed packages in
+The `opkgscript.sh` script helps to restore the current set of packages after a
+sysupgrade or even a clean install of either LEDE or OpenWrt. By default, the
+`write` command saves the list of installed packages in
 `/etc/config/opkg.installed` (where it will be preserved across sysupgrades),
 and the `install` command reads the file, to restore that set of packages.
 Cloned from Malte Forkel's
@@ -84,42 +85,40 @@ Cloned from Malte Forkel's
 
 **Usage:**
 
-`sh opkgscript.sh write` _use before sysupgrade to save the current set of packages_
+`sh opkgscript.sh write` _use before sysupgrade to save the current set of
+packages_
 
-`sh opkgscript.sh install` _use after successful sysupgrade, to restore those packages_
+`sh opkgscript.sh install` _use after successful sysupgrade, to restore those
+packages_
 
 `sh opkgscript.sh help` _display full help information for the script_
 
 ## [config-spare-router.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/config-spare-router.sh)
 
-Configure a "spare router" to known settings so that
-it's easy to use in a new situation.
-Many of us have a pile of routers that might be passed along to
-friends, family, or neighbors.
-But they're in an unknown state, and it's a hassle to figure out the
-current configuration to reuse them.
+Configure a "spare router" to known settings so that it's easy to use in a new
+situation. Many of us have a pile of routers that might be passed along to
+friends, family, or neighbors. But they're in an unknown state, and it's a
+hassle to figure out the current configuration to reuse them.
 
-This script configures an OpenWrt router to a known state.
-It also prints a label that can be taped to the outside of the router
-so the next person "to touch it" can log in easily.
+This script configures an OpenWrt router to a known state. It also prints a
+label that can be taped to the outside of the router so the next person "to
+touch it" can log in easily.
 
-When you're taking a router out of service,
-install the latest OpenWrt firmware, then run this script.
-Print the label (below) and tape it to the router.
-It'll be easy to start using it again.
-For more details, read
+When you're taking a router out of service, install the latest OpenWrt firmware,
+then run this script. Print the label (below) and tape it to the router. It'll
+be easy to start using it again. For more details, read
 [Why a "spare router"?](./Why%20a%20Spare%20Router%3F.md)
 
 ## [print-router-label.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/print-router-label.sh)
 
-This script retrieves values from an OpenWrt router to create a
-label that contains the LAN address and important credentials.
-Tape this label to the side of the router so the next person
-to encounter the router (which may be you) can access it.
+This script retrieves values from an OpenWrt router to create a label that
+contains the LAN address and important credentials. Tape this label to the side
+of the router so the next person to encounter the router (which may be you) can
+access it.
 
-This process is reasonably secure - if the bad guy
-can read the label, they can also factory-reset the router
-(or steal your TV or your silverware). Here's a sample label:
+This process is reasonably secure - if the bad guy can read the label, they can
+also factory-reset the router (or steal your TV or your silverware). Here's a
+sample label:
 
 ```text
 ======= Printed with: print-router-label.sh =======
@@ -140,41 +139,38 @@ Label for Power Brick: Linksys E8450 (UBI)
 
 ## [config-openwrt.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/config-openwrt.sh)
 
-The `config-openwrt.sh` script updates the factory settings of OpenWrt
-to a known-good configuration.
-If you frequently update your firmware, you can use this script to reconfigure
-the router to a consistent state.
-You should make a copy of this script, customize it to your needs,
-then use the "To run this script" procedure (below).
+The `config-openwrt.sh` script updates the factory settings of OpenWrt to a
+known-good configuration. If you frequently update your firmware, you can use
+this script to reconfigure the router to a consistent state. You should make a
+copy of this script, customize it to your needs, then use the "To run this
+script" procedure (below).
 
-This script is designed to configure the settings after an initial
-"factory" firmware flash.
-There are sections below to configure many aspects of your router.
-All the sections are commented out. There are sections for:
+This script is designed to configure the settings after an initial "factory"
+firmware flash. There are sections below to configure many aspects of your
+router. All the sections are commented out. There are sections for:
 
-* Set up the WAN interface to connect to your provider
-* Update the software packages
-* Update the root password
-* Set the time zone
-* Enable SNMP for traffic monitoring and measurements
-* Enable mDNS/ZeroConf on the WAN interface
-* Set the SQM (Smart Queue Management) parameters
+- Set up the WAN interface to connect to your provider
+- Update the software packages
+- Update the root password
+- Set the time zone
+- Enable SNMP for traffic monitoring and measurements
+- Enable mDNS/ZeroConf on the WAN interface
+- Set the SQM (Smart Queue Management) parameters
 
 _[ Note: the remaining items have not been converted to work on OpenWrt yet ]_
 
-* Enable NetFlow export for traffic analysis
-* Change default IP addresses and subnets for interfaces
-* Change default DNS names
-* Set the radio channels
-* Set wireless SSID names
-* Set the wireless security credentials]_
+- Enable NetFlow export for traffic analysis
+- Change default IP addresses and subnets for interfaces
+- Change default DNS names
+- Set the radio channels
+- Set wireless SSID names
+- Set the wireless security credentials\]\_
 
 ### To run this script
 
-Flash the router with factory firmware.
-Then telnet/ssh in and execute these statements.
-You should do this over a wired connection because some of these changes
-may reset the wireless network.
+Flash the router with factory firmware. Then telnet/ssh in and execute these
+statements. You should do this over a wired connection because some of these
+changes may reset the wireless network.
 
 ```bash
 ssh root@192.168.1.1
@@ -185,35 +181,34 @@ sh config.sh
 Presto! (You should reboot the router when this completes.)
 ```
 
-**Note:** If you use a secondary OpenWrt router, you can create another copy
-of this script, and use it to set different configuration parameters
-(perhaps different subnets, radio channels, SSIDs, enable mDNS, etc).
+**Note:** If you use a secondary OpenWrt router, you can create another copy of
+this script, and use it to set different configuration parameters (perhaps
+different subnets, radio channels, SSIDs, enable mDNS, etc).
 
 ## [betterspeedtest.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/betterspeedtest.sh)
 
-The `betterspeedtest.sh` script emulates the web-based test performed
-by speedtest.net, but does it one better. [^1]
-While script performs a download and an upload to a server on the Internet,
-it simultaneously measures latency of pings to see whether the file transfers
-affect the responsiveness of your network.
+The `betterspeedtest.sh` script emulates the web-based test performed by
+speedtest.net, but does it one better. [^1] While script performs a download and
+an upload to a server on the Internet, it simultaneously measures latency of
+pings to see whether the file transfers affect the responsiveness of your
+network.
 
-Here's why that's important:
-If the data transfers do increase the latency/lag much,
-then other network activity, such as voice or video chat, gaming, and
-general network activity will also work poorly.
-Gamers will see this as lagging out when someone else uses the network.
-Skype and FaceTime will see dropouts or freezes.
-Latency is bad, and good routers will not allow it to happen.
+Here's why that's important: If the data transfers do increase the latency/lag
+much, then other network activity, such as voice or video chat, gaming, and
+general network activity will also work poorly. Gamers will see this as lagging
+out when someone else uses the network. Skype and FaceTime will see dropouts or
+freezes. Latency is bad, and good routers will not allow it to happen.
 
-[^1]: Since the script was created all three of the major speed test sites now
-include a latency setting.
-But `betterspeedtest.sh` still provides good numerical results. See:
+\[^1\]: Since the script was created all three of the major speed test sites now
+include a latency setting. But `betterspeedtest.sh` still provides good
+numerical results. See:
 
-* [Speedtest.net](https://www.speedtest.net/)
-* [Cloudflare Speed Test](https://speed.cloudflare.com/)
-* [Waveform Speed Test](https://www.waveform.com/tools/bufferbloat)
+- [Speedtest.net](https://www.speedtest.net/)
+- [Cloudflare Speed Test](https://speed.cloudflare.com/)
+- [Waveform Speed Test](https://www.waveform.com/tools/bufferbloat)
 
-The betterspeedtest.sh script measures latency during file transfers. To invoke it:
+The betterspeedtest.sh script measures latency during file transfers. To invoke
+it:
 
 ```bash
 sh betterspeedtest.sh -Z passphrase [ -4 | -6 ] [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -i ] [ -n simultaneous-streams ]
@@ -221,42 +216,41 @@ sh betterspeedtest.sh -Z passphrase [ -4 | -6 ] [ -H netperf-server ] [ -t durat
 
 Options, if present, are:
 
-* -H | --host: DNS or Address of a netperf server (default - netperf.bufferbloat.net)
-  Alternate servers are netperf-east (east coast US), netperf-west (California),
-  and netperf-eu (Denmark)
-* -4 | -6:     Enable ipv4 or ipv6 testing (default - ipv4)
-* -t | --time: Duration for how long each direction's test should run - (default - 60 seconds)
-* -p | --ping: Host to ping to measure latency (default - gstatic.com)
-* -i | --idle: Don't send traffic, only measure idle latency
-* -n | --number: Number of simultaneous sessions (default - 5 sessions)
-* -Z passphrase: Required to use the default netperf.bufferbloat.net server.
+- -H | --host: DNS or Address of a netperf server (default -
+  netperf.bufferbloat.net) Alternate servers are netperf-east (east coast US),
+  netperf-west (California), and netperf-eu (Denmark)
+- -4 | -6: Enable ipv4 or ipv6 testing (default - ipv4)
+- -t | --time: Duration for how long each direction's test should run - (default
+  \- 60 seconds)
+- -p | --ping: Host to ping to measure latency (default - gstatic.com)
+- -i | --idle: Don't send traffic, only measure idle latency
+- -n | --number: Number of simultaneous sessions (default - 5 sessions)
+- -Z passphrase: Required to use the default netperf.bufferbloat.net server.
   Visit the site to get today's value.
 
-The output shows separate (one-way) download and upload speed,
-along with a summary of latencies, including min, max, average, median,
-and 10th and 90th percentiles so you can get a sense of the distribution.
-The tool also displays the percent packet loss.
-The example below shows two measurements, bad and good.
+The output shows separate (one-way) download and upload speed, along with a
+summary of latencies, including min, max, average, median, and 10th and 90th
+percentiles so you can get a sense of the distribution. The tool also displays
+the percent packet loss. The example below shows two measurements, bad and good.
 
-The Idle test uses the same process to measure latency of the line,
-but without any additional traffic from this script.
-It runs for the specified --time.
+The Idle test uses the same process to measure latency of the line, but without
+any additional traffic from this script. It runs for the specified --time.
 
-_Note:_ If the script displays all-zeros for the latency,
-check these possibilities:
+_Note:_ If the script displays all-zeros for the latency, check these
+possibilities:
 
-* The named server may be down
-* The script may have chosen an IPv6 address when it's not available.
-  Use the `-4` or `-6` option to force the proper address type.
+- The named server may be down
+- The script may have chosen an IPv6 address when it's not available. Use the
+  `-4` or `-6` option to force the proper address type.
 
 ### Sample Results
 
-On the left is a test run without SQM.
-Note that the latency gets huge (greater than 5 seconds), meaning that
-network performance would be terrible for anyone else using the network.
+On the left is a test run without SQM. Note that the latency gets huge (greater
+than 5 seconds), meaning that network performance would be terrible for anyone
+else using the network.
 
-On the right is a test using SQM: the latency goes up a little
-(less than 23 msec under load), and network performance remains good.
+On the right is a test using SQM: the latency goes up a little (less than 23
+msec under load), and network performance remains good.
 
 ```text
 Example with NO SQM - BAD                                 Example using SQM - GOOD
@@ -287,17 +281,15 @@ root@openwrt# sh betterspeedtest.sh                       root@openwrt# sh bette
 
 ## [netperfrunner.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/netperfrunner.sh)
 
-The `netperfrunner.sh` script runs several netperf commands simultaneously.
-This mimics the stress test of
-[Flent](https://github.com/tohojo/flent)
-[Github] but without the nice GUI result.
+The `netperfrunner.sh` script runs several netperf commands simultaneously. This
+mimics the stress test of [Flent](https://github.com/tohojo/flent) [Github] but
+without the nice GUI result.
 
 When you start this script, it concurrently uploads and downloads several
-streams (files) to a server on the Internet. This places a heavy load
-on the bottleneck link of your network
-(probably your connection to the Internet),
-and lets you measure both the total bandwidth
-and the latency of the link during the transfers.
+streams (files) to a server on the Internet. This places a heavy load on the
+bottleneck link of your network (probably your connection to the Internet), and
+lets you measure both the total bandwidth and the latency of the link during the
+transfers.
 
 To invoke the script:
 
@@ -307,74 +299,70 @@ sh netperfrunner.sh -Z passphrase [ -4 | -6 ] [ -H netperf-server ] [ -t duratio
 
 Options, if present, are:
 
-* -H | --host: DNS or Address of a netperf server (default - netperf.bufferbloat.net)
-  Alternate servers are netperf-east (East Coast US),
-  netperf-west (California),
-  netperf-eu (Denmark), or
-  flent-fremont (also California)
-* -4 | -6: Enable ipv4 or ipv6 testing (default - ipv4)
-* -t | --time: Duration for how long each direction's test should run -
-  (default - 60 seconds)
-* -p | --ping: Host to ping to measure latency (default - gstatic.com)
-* -n | --number: Number of simultaneous sessions (default - 4 sessions)
-* -Z passphrase: Required for netperf.bufferbloat.net
-  See `betterspeedtest.sh`
+- -H | --host: DNS or Address of a netperf server (default -
+  netperf.bufferbloat.net) Alternate servers are netperf-east (East Coast US),
+  netperf-west (California), netperf-eu (Denmark), or flent-fremont (also
+  California)
+- -4 | -6: Enable ipv4 or ipv6 testing (default - ipv4)
+- -t | --time: Duration for how long each direction's test should run - (default
+  \- 60 seconds)
+- -p | --ping: Host to ping to measure latency (default - gstatic.com)
+- -n | --number: Number of simultaneous sessions (default - 4 sessions)
+- -Z passphrase: Required for netperf.bufferbloat.net See `betterspeedtest.sh`
 
 The output of the script looks like this:
 
 ```bash
 root@openwrt:/usr/lib/OpenWrtScripts# sh netperfrunner.sh
 [date/time] Testing netperf.bufferbloat.net (ipv4) with 4 streams down and up
-  while pinging gstatic.com. Takes about 60 seconds.
+while pinging gstatic.com. Takes about 60 seconds.
 Download:  5.02 Mbps
-  Upload:  0.41 Mbps
- Latency: (in msec, 61 pings, 15.00% packet loss)
-   Min: 44.494
-   10pct: 44.494
-  Median: 66.438
-   Avg: 68.559
-   90pct: 79.049
-   Max: 140.421
+Upload:  0.41 Mbps
+Latency: (in msec, 61 pings, 15.00% packet loss)
+Min: 44.494
+10pct: 44.494
+Median: 66.438
+Avg: 68.559
+90pct: 79.049
+Max: 140.421
 ```
 
-**Note:** The download and upload speeds reported may be considerably lower
-than your line's rated speed.
-This is not a bug, nor is it a problem with your internet connection.
-That's because the acknowledge messages sent back to the sender consume
-a significant fraction of the link's capacity (as much as 25%).
+**Note:** The download and upload speeds reported may be considerably lower than
+your line's rated speed. This is not a bug, nor is it a problem with your
+internet connection. That's because the acknowledge messages sent back to the
+sender consume a significant fraction of the link's capacity (as much as 25%).
 
 ## [idlelatency.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/idlelatency.sh)
 
-_This script is no longer maintained.
-Use the `--idle` option of the `betterspeedtest.sh` script._
+_This script is no longer maintained. Use the `--idle` option of the
+`betterspeedtest.sh` script._
 
 ## [tunnelbroker.sh](https://github.com/richb-hanover/OpenWrtScripts/blob/master/tunnelbroker.sh)
 
-The `tunnelbroker.sh` script configures OpenWrt to create
-an IPv6 tunnel via Hurricane Electric.
-It's an easy way to become familiar with IPv6 if your ISP
-doesn't offer native IPv6 capabilities.
-There are several steps:
+The `tunnelbroker.sh` script configures OpenWrt to create an IPv6 tunnel via
+Hurricane Electric. It's an easy way to become familiar with IPv6 if your ISP
+doesn't offer native IPv6 capabilities. There are several steps:
 
-1. Go to the Hurricane Electric
-   [TunnelBroker.net](http://www.tunnelbroker.net/) site to set up your free account.
-   There are detailed instructions for setting up an account and an IPv6 tunnel
-   in the script itself, or at the
+1. Go to the Hurricane Electric [TunnelBroker.net](http://www.tunnelbroker.net/)
+   site to set up your free account. There are detailed instructions for setting
+   up an account and an IPv6 tunnel in the script itself, or at the
    [IPv6 Tunnel page](http://www.bufferbloat.net/projects/cerowrt/wiki/IPv6_Tunnel)
    of [bufferbloat.net](bufferbloat.net)
+
 2. From the tunnelbroker main page, click "Create Regular Tunnel"
 
-   * Enter your IP address in "IPv4 Endpoint"
-     (paste in the address you're "viewing from")
-   * Select a nearby Tunnel Server
-   * Click "Create Tunnel"
+   - Enter your IP address in "IPv4 Endpoint" (paste in the address you're
+     "viewing from")
+   - Select a nearby Tunnel Server
+   - Click "Create Tunnel"
 
-3. On the resulting Tunnel Details page, click **Assign /48** to get
-   a /48 prefix
-4. From the Tunnel Details page, copy and paste the matching values
-   into the `tunnel.sh` file.
-   The _User\_Name_ is the name you used to create the account.
-   Find the _Update\_Key_ on the Advanced Tab of the Tunnel Details page.
+3. On the resulting Tunnel Details page, click **Assign /48** to get a /48
+   prefix
+
+4. From the Tunnel Details page, copy and paste the matching values into the
+   `tunnel.sh` file. The _User_Name_ is the name you used to create the account.
+   Find the _Update_Key_ on the Advanced Tab of the Tunnel Details page.
+
 5. ssh into the router and execute this script with these steps.
 
 ```bash
@@ -387,7 +375,6 @@ sh tunnel.sh
 [Restart your router. This seems to make a difference.]
 ```
 
-Presto! Your tunnel is up!
-Your computer should get a global IPv6 address, and should be able to
-communicate directly with IPv6 devices on the Internet.
-To test it, try: `ping6 ivp6.google.com`
+Presto! Your tunnel is up! Your computer should get a global IPv6 address, and
+should be able to communicate directly with IPv6 devices on the Internet. To
+test it, try: `ping6 ivp6.google.com`

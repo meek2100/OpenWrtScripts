@@ -10,7 +10,7 @@
 # Options: If options are present:
 #
 # -H | --host:   DNS or Address of a netperf server (default - netperf.bufferbloat.net)
-#                Alternate servers are netperf-east (east coast US), netperf-west (California), 
+#                Alternate servers are netperf-east (east coast US), netperf-west (California),
 #                and netperf-eu (Denmark)
 # -4 | -6:       enable ipv4 or ipv6 testing (ipv4 is the default)
 # -t | --time:   Duration for how long each direction's test should run - (default - 60 seconds)
@@ -22,28 +22,29 @@
 # Copyright (c) 2014-2024 - Rich Brown rich.brown@blueberryhillsoftware.com
 # GPLv2
 
-  # Process the ping times from the passed-in file, and summarize the results
-  # grep to keep lines that have "time=", then sed to isolate the time stamps, and sort them
-  # Use awk to build an array of those values, and print first & last (which are min, max) 
-  # and compute average.
-  # If the number of samples is >= 10, also compute median, and 10th and 90th percentile readings
+# Process the ping times from the passed-in file, and summarize the results
+# grep to keep lines that have "time=", then sed to isolate the time stamps, and sort them
+# Use awk to build an array of those values, and print first & last (which are min, max)
+# and compute average.
+# If the number of samples is >= 10, also compute median, and 10th and 90th percentile readings
 
-  # Display the values as:
-  #   Latency: (in msec, 11 pings, 8.33% packet loss)
-  #    Min: 16.556
-  #  10pct: 16.561
-  # Median: 22.370
-  #    Avg: 21.203
-  #  90pct: 23.202
-  #    Max: 23.394
+# Display the values as:
+#   Latency: (in msec, 11 pings, 8.33% packet loss)
+#    Min: 16.556
+#  10pct: 16.561
+# Median: 22.370
+#    Avg: 21.203
+#  90pct: 23.202
+#    Max: 23.394
 
-summarize_pings() {     
-  
-grep "time" < "$1" | cat | \
-sed 's/^.*time=\([^ ]*\) ms/\1/'| \
-  # tee >&2 | \
-  sort -n | \
-  awk 'BEGIN {numdrops=0; numrows=0} \
+summarize_pings() {
+
+  grep "time" < "$1" | cat | \
+    sed 's/^.*time=\([^ ]*\) ms/\1/'| \
+
+    # tee >&2 |
+    sort -n | \
+    awk 'BEGIN {numdrops=0; numrows=0} \
     { \
       # print ; \
       if ( $0 ~ /timeout/ ) { \
@@ -66,7 +67,7 @@ sed 's/^.*time=\([^ ]*\) ms/\1/'| \
       }; \
       pktloss = numdrops/(numdrops+numrows) * 100; \
       printf("\n  Latency: (in msec, %d pings, %4.2f%% packet loss)\n      Min: %4.3f \n    10pct: %4.3f \n   Median: %4.3f \n      Avg: %4.3f \n    90pct: %4.3f \n      Max: %4.3f\n", numrows, pktloss, arr[1], pc10, med, sum/numrows, pc90, arr[numrows] )\
-     }'
+    }'
 }
 
 # Print a line of dots as a progress indicator.
@@ -106,9 +107,9 @@ clean_up() {
 # Stop the current pings and dots, and exit
 catch_interrupt() {
 
-  printf "  Stopped!" 
+  printf "  Stopped!"
   kill_pings
-  kill_dots 
+  kill_dots
   summarize_pings "$PINGFILE"
   rm "$PINGFILE"
   rm "$SPEEDFILE"
@@ -118,7 +119,7 @@ catch_interrupt() {
 # Display "no passphrase" message and exit
 no_passphrase() {
   echo ""
-  echo "Missing/incorrect passphrase - see https://$TESTHOST" 
+  echo "Missing/incorrect passphrase - see https://$TESTHOST"
   echo ""
   exit 1
 }
@@ -159,8 +160,8 @@ measure_direction() {
   SPEEDFILE=$(mktemp /tmp/netperfUL.XXXXXX) || exit 1
   ERRFILE=$(mktemp /tmp/netperfErr.XXXXXX) || exit 1
   DIRECTION=$1
-  
-# start off the ping process
+
+  # start off the ping process
   start_pings
 
   # Start netperf with the proper direction
@@ -174,11 +175,11 @@ measure_direction() {
   # netperf writes the sole output value (in Mbps) to stdout when completed
   for i in $( seq "$MAXSESSIONS" )
   do
-    netperf "$TESTPROTO" -H "$TESTHOST" -t "$dir" -l "$TESTDUR" -v 0 -P 0 $PASSPHRASEOPTION >> "$SPEEDFILE" 2>> $ERRFILE &
+    netperf "$TESTPROTO" -H "$TESTHOST" -t "$dir" -l "$TESTDUR" -v 0 -P 0 "$PASSPHRASEOPTION" >> "$SPEEDFILE" 2>> "$ERRFILE" &
     # echo "Starting PID $! params: $TESTPROTO -H $TESTHOST -t $dir -l $TESTDUR -v 0 -P 0 >> $SPEEDFILE"
-  done  
+  done
 
-  # Wait until each of the background netperf processes completes 
+  # Wait until each of the background netperf processes completes
   # echo "Process is $$"
   # echo `pgrep -P $$ netperf `
 
@@ -190,14 +191,14 @@ measure_direction() {
 
   # Check the length of the error file. If it's > 0, then there were errors
   file_size=$(wc -c < "$ERRFILE")
-  if [ $file_size -gt 0 ]; then
+  if [ "$file_size" -gt 0 ]; then
     clean_up                    # stop the machinery
     no_passphrase               # print the error and exit
-  fi 
+  fi
 
   # Summarize the speed records and print them
   echo ""
-  awk -v dir="$1" '{s+=$1} END {printf " %s: %1.2f Mbps", dir, s}' < "$SPEEDFILE" 
+  awk -v dir="$1" '{s+=$1} END {printf " %s: %1.2f Mbps", dir, s}' < "$SPEEDFILE"
 
   # When netperf completes, summarize the ping data
   summarize_pings "$PINGFILE"
@@ -218,48 +219,50 @@ measure_direction() {
 #       5 sessions chosen empirically because total didn't increase much after that number)
 # "Z"            Required passphrase - see netperf.bufferbloat.net
 
-# set an initial values for defaults
-TESTHOST="netperf.bufferbloat.net"
-TESTDUR="60"
+run_betterspeedtest() {
 
-PING4=ping
-command -v ping4 > /dev/null 2>&1 && PING4=ping4
-PING6=ping6
+  # set an initial values for defaults
+  TESTHOST="netperf.bufferbloat.net"
+  TESTDUR="60"
 
-PINGHOST="gstatic.com"
-MAXSESSIONS="5"
-TESTPROTO="-4"
-IDLETEST=false
+  PING4=ping
+  command -v ping4 > /dev/null 2>&1 && PING4=ping4
+  PING6=ping6
 
-# Check to see if netperf is installed and exit if not
-if ! command -v netperf >/dev/null 2>&1; then
-  echo ""
-  echo "Error: netperf is not installed or not in PATH" >&2
-  exit 1
-fi
+  PINGHOST="gstatic.com"
+  MAXSESSIONS="5"
+  TESTPROTO="-4"
+  IDLETEST=false
 
-# read the options
+  # Check to see if netperf is installed and exit if not
+  if ! command -v netperf >/dev/null 2>&1; then
+    echo ""
+    echo "Error: netperf is not installed or not in PATH" >&2
+    exit 1
+  fi
 
-# extract options and their arguments into variables.
-while [ $# -gt 0 ] 
-do
+  # read the options
+
+  # extract options and their arguments into variables.
+  while [ $# -gt 0 ]
+  do
     case "$1" in
       -4|-6) TESTPROTO=$1 ; shift 1 ;;
       -H|--host)
-          case "$2" in
-              "") echo "Missing hostname" ; exit 1 ;;
-              *) TESTHOST=$2 ; shift 2 ;;
-          esac ;;
-      -t|--time) 
+        case "$2" in
+          "") echo "Missing hostname" ; exit 1 ;;
+          *) TESTHOST=$2 ; shift 2 ;;
+        esac ;;
+      -t|--time)
         case "$2" in
           "") echo "Missing duration" ; exit 1 ;;
-              *) TESTDUR=$2 ; shift 2 ;;
-          esac ;;
+          *) TESTDUR=$2 ; shift 2 ;;
+        esac ;;
       -p|--ping)
-          case "$2" in
-              "") echo "Missing ping host" ; exit 1 ;;
-              *) PINGHOST=$2 ; shift 2 ;;
-          esac ;;
+        case "$2" in
+          "") echo "Missing ping host" ; exit 1 ;;
+          *) PINGHOST=$2 ; shift 2 ;;
+        esac ;;
       -n|--number)
         case "$2" in
           "") echo "Missing number of simultaneous sessions" ; exit 1 ;;
@@ -268,40 +271,46 @@ do
       -i|--idle)
         IDLETEST=true ; shift 1 ;;
       -Z)
-          case "$2" in
-              "") no_passphrase ; exit 1 ;;
-              *) PASSPHRASEOPTION="-Z $2" ; shift 2 ;;
-          esac ;;
+        case "$2" in
+          "") no_passphrase ;;
+          *) PASSPHRASEOPTION="-Z $2" ; shift 2 ;;
+        esac ;;
       --) shift ; break ;;
-        *) echo "Usage: sh betterspeedtest.sh -Z passphrase [-4 -6] [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -n simultaneous-sessions ] [ --idle ]" ; exit 1 ;;
+      *) echo "Usage: sh betterspeedtest.sh -Z passphrase [-4 -6] [ -H netperf-server ] [ -t duration ] [ -p host-to-ping ] [ -n simultaneous-sessions ] [ --idle ]" ; exit 1 ;;
     esac
-done
+  done
 
-# Start the main test
+  # Start the main test
 
-if [ "$TESTPROTO" -eq "-4" ]
-then
-  PROTO="ipv4"
-else
-  PROTO="ipv6"
-fi
-DATE=$(date "+%Y-%m-%d %H:%M:%S")
+  if [ "$TESTPROTO" -eq "-4" ]
+  then
+    PROTO="ipv4"
+  else
+    PROTO="ipv6"
+  fi
+  DATE=$(date "+%Y-%m-%d %H:%M:%S")
 
-# Catch a Ctl-C and close up
-trap catch_interrupt HUP INT TERM
+  # Catch a Ctl-C and close up
+  trap catch_interrupt HUP INT TERM
 
-if $IDLETEST
-then
-  echo "$DATE Testing idle line while pinging $PINGHOST ($TESTDUR seconds)"
-  SPEEDFILE=$(mktemp /tmp/netperfUL.XXXXXX) || exit 1
-  ERRFILE=$(mktemp /tmp/netperfErr.XXXXXX) || exit 1
-  start_pings
-  sleep "$TESTDUR"
-  summarize_pings "$PINGFILE"
-  clean_up
+  if $IDLETEST
+  then
+    echo "$DATE Testing idle line while pinging $PINGHOST ($TESTDUR seconds)"
+    SPEEDFILE=$(mktemp /tmp/netperfUL.XXXXXX) || exit 1
+    ERRFILE=$(mktemp /tmp/netperfErr.XXXXXX) || exit 1
+    start_pings
+    sleep "$TESTDUR"
+    summarize_pings "$PINGFILE"
+    clean_up
 
-else
-  echo "$DATE Testing against $TESTHOST ($PROTO) with $MAXSESSIONS simultaneous sessions while pinging $PINGHOST ($TESTDUR seconds in each direction)"
-  measure_direction "Download" 
-  measure_direction "  Upload" 
+  else
+    echo "$DATE Testing against $TESTHOST ($PROTO) with $MAXSESSIONS simultaneous sessions while pinging $PINGHOST ($TESTDUR seconds in each direction)"
+    measure_direction "Download"
+    measure_direction "  Upload"
+  fi
+
+}
+
+if [ "${0##*/}" != "shellspec" ]; then
+  run_betterspeedtest "$@"
 fi
