@@ -43,11 +43,11 @@ jobs:
           # Initialize shellspec to create .shellspec configuration
           $HOME/.local/lib/shellspec/bin/shellspec --init
 
-      - name: Install Kcov (Build from Source)
+      - name: Install Test dependencies
         run: |
-          # Install dependencies required to build kcov
+          # Install dependencies required to build kcov and run tests
           sudo apt-get update
-          sudo apt-get install -y binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake build-essential python3
+          sudo apt-get install -y binutils-dev libcurl4-openssl-dev zlib1g-dev libdw-dev libiberty-dev cmake build-essential python3 netperf snmp
 
           # Clone and build kcov
           git clone https://github.com/SimonKagstrom/kcov.git
@@ -58,6 +58,7 @@ jobs:
           sudo make install
 
       - name: Run ShellSpec with Coverage
+        # Ensure the path includes shellspec
         run: |
           export PATH=$PATH:$HOME/.local/lib/shellspec/bin
           chmod +x *.sh
