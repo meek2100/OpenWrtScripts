@@ -311,6 +311,6 @@ run_betterspeedtest() {
 
 }
 
-if [ "${0##*/}" != "shellspec" ]; then
+if [ "${0##*/}" != "shellspec" ] && [ -z "${UNIT_TESTING:-}" ]; then
   run_betterspeedtest "$@"
 fi
